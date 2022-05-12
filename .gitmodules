@@ -1,0 +1,3 @@
+[submodule "panorama_extended"]
+	path = panorama_extended
+	url = https://github.com/Alexmnzlms/panorama_extended.git

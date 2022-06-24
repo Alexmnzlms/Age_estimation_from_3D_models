@@ -17,6 +17,7 @@ see_img/*
 *.png
 *.pdf
 *.xlsx
-src/__pychace__/*
+src/__pycache__/*
 log
 sys
+*.sh

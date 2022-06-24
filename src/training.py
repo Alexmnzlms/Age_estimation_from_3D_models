@@ -1,15 +1,28 @@
+import enum
+from random import random
+from re import S
+from xml.etree.ElementInclude import include
 from sklearn import metrics
 import tensorflow as tf
 from tensorflow.keras import callbacks, Input
 from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, AveragePooling2D, ReLU, Flatten, Dense, GlobalAveragePooling2D, BatchNormalization, Dropout, Lambda, ZeroPadding2D, concatenate, Average
-from tensorflow.keras.optimizers import SGD, Adam
-import tensorflow.keras.backend as backend
+from tensorflow.keras.optimizers import SGD, Adam, RMSprop
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
 from tensorflow.keras.losses import MeanSquaredError, MeanAbsoluteError, CategoricalCrossentropy
+from tensorflow.keras.applications.resnet50 import ResNet50
+from tensorflow.keras.applications import VGG16
+
+from sklearn.model_selection import KFold
+
+from keras.utils.vis_utils import plot_model
+
+from collections import Counter
+
+import scipy.ndimage as sci
 
 import numpy as np
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import *
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -17,274 +30,429 @@ from PIL import Image
 import os
 import cv2 as cv
 
+import random
+
 import ranges_of_age as roa
 
-def create_CNN(width, height, depth):
-    input_shape = (height, width, depth)
+import sys
 
-    inputs = Input(shape=input_shape)
+from datetime import datetime
 
-    filters = [64, 256, 1024]
-    f_size = [5 ,5, 3]
+import functions as fn
 
-    x = inputs
-
-    for i, f in enumerate(filters):
-        x = ZeroPadding2D(padding=2)(x)
-        x = Conv2D(f, (f_size[i],f_size[i]), padding="valid")(x)
-        x = ReLU()(x)
-        x = MaxPooling2D(pool_size=(2,2))(x)
-
-    x = Flatten()(x)
-    x = Dense(100)(x)
-    x = Dense(100)(x)
-    x = Dropout(0.1)(x)
-    x = Dense(1, activation='linear')(x)
-
-    model = Model(inputs, x)
-
-    return model
-
-def get_images_list(dataframe,regresion=True):
-    list = dataframe.to_numpy()
-
-    image_list = []
-    # img_names = ['_panorama_SDM.png', '_panorama_NDM.png', '_panorama_GNDM.png']
-    img_names = ['_panorama_ext_X.png', '_panorama_ext_Y.png', '_panorama_ext_Z.png']
-    # img_names = ['_panorama_SDM.png']
-
-    if regresion:
-        idx = 2
-    else:
-        idx = 1
-
-    for t in list:
-        imgs = []
-        for i in np.arange(len(img_names)):
-            img = t[0]+'/'+t[0]+img_names[i]
-            imgs.append(img)
-        imgs.append(t[idx])
-        image_list.append(imgs)
-
-    return np.array(image_list)
-
-def rotate_image(image, img_shape, shuffle_pos):
-    rot_image = np.zeros((img_shape[0],int(img_shape[1]/1.5),3))
-    rot_image2 = np.zeros_like(image)
-    img_max = int(img_shape[1]/1.5)
-    rot_image[:,0:int(img_shape[1]/1.5),] = image[:,0:int(img_shape[1]/1.5):]
-    rot_image2[:,:(img_max-shuffle_pos),] = rot_image[:,shuffle_pos:]
-    rot_image2[:,(img_max-shuffle_pos):img_max,] = rot_image[:,:shuffle_pos]
-    rot_image2[:,img_max:,] = rot_image2[:,0:int(img_max/2)]
-    # cv.imshow('image',image)
-    # cv.imshow('rot_image',rot_image2)
-    # # image_opencv = cv.imread(img_path)
-    # # cv.imshow('image_opencv',image_opencv)
-    # cv.imwrite('./data_img/1_Dch/1_Dch_panorama_ext_Y_2.png', image)
-    # cv.waitKey()
-    # cv.destroyAllWindows()
-
-    return rot_image2
-
-def cached_img_read(img_path, img_shape, colormode, image_cache, shuffle_pos):
-    if img_path not in image_cache.keys():
-        # print(img_path)
-        image = img_to_array(load_img(img_path, color_mode=colormode, target_size=img_shape, interpolation='bilinear')).astype(np.float32)
-        image = image / 255.0
-        if colormode == 'rgb':
-            image = cv.cvtColor(image,cv.COLOR_BGR2RGB)
-        image = rotate_image(image, img_shape, shuffle_pos)
-        image_cache[img_path] = image
-    
-    return image_cache[img_path]
-
-def read_images_gen(images, dir, img_shape, datagen, colormode, image_cache, augment):
-    if colormode == "grayscale":
-        X = np.zeros((len(images), img_shape[0], img_shape[1], 1))
-    else:
-        X = np.zeros((len(images), img_shape[0], img_shape[1], 3))
-
-    for i, image_name in enumerate(images):
-        image = cached_img_read(dir+image_name, img_shape, colormode, image_cache, augment[i])
-        X[i] = datagen.standardize(image)
-        
-    return X
-        
-
-def image_generator(images, dir, batch_size, datagen, img_shape=(108,108), colormode="grayscale", shuffle=False):
-    image_cache = {}
-
-    while True:
-        n_imgs = len(images)
-        if shuffle:
-            indexs = np.random.permutation(np.arange(n_imgs))
-        else:
-            indexs = np.arange(n_imgs)
-        num_batches = n_imgs // batch_size
-        
-        for bid in range(num_batches):
-            batch_idx = indexs[bid*batch_size:(bid+1)*batch_size]
-            batch = [images[i] for i in batch_idx]
-            augment = np.random.randint(0,int(img_shape[1]/2),batch_size)
-            img1 = read_images_gen([b[0] for b in batch], dir, img_shape, datagen, colormode, image_cache, augment)
-            img2 = read_images_gen([b[1] for b in batch], dir, img_shape, datagen, colormode, image_cache, augment)
-            img3 = read_images_gen([b[2] for b in batch], dir, img_shape, datagen, colormode, image_cache, augment)
-            label = np.array([b[3] for b in batch]).astype(np.float32)
-            # label = np.array([b[1] for b in batch]).astype(np.float32)
-            # print([img1, img2, img3], label)
-            yield ([img1, img2, img3], label)
-            # yield ([img1], label)
-
-def mostrarEvolucion(hist, save=False, dyh=""):
-    loss = hist.history['loss']
-    val_loss = hist.history['val_loss']
-    plt.plot(loss)
-    plt.plot(val_loss)
-    plt.legend(['Training loss', 'Validation loss'])
-    #   if save:
-    #     name = "Loss_" + dyh
-    #     plt.savefig(name)
-    plt.show()
-
-
-BATCH_SIZE = 1
+################################################################################
+BATCH_SIZE = 32
 EPOCHS = 100
-IMG_SHAPE = (90,270)
+# IMG_SHAPE = (90,270)
 REGRESSION = True
+COLORMODE = sys.argv[1]
+VERBOSE = 2
+# FOLDS = n_splits=df['Sample'].size
+# FOLDS = 5
+RESNET = bool(int(sys.argv[2]))
+SEED = int(sys.argv[3])
+OUTPUT = sys.argv[4]
 
-train_val = pd.read_csv('./train.csv')
-test = pd.read_csv('./test.csv')
+if COLORMODE == 'rgb':
+    IMG_SHAPE = (36,108)
+    depth = 3
+    if RESNET:
+        cnn = fn.create_CNN_Resnet
+    else:
+        cnn = fn.create_CNN
+elif COLORMODE == 'grayscale':
+    IMG_SHAPE = (108,108)
+    depth = 1
+    cnn = fn.create_CNN
 
-train, validation = train_test_split(train_val, test_size=0.25)
+# df = pd.read_csv('./dataset.csv')
+# calculate_weights(df)
+# df_list = get_images_list(df,COLORMODE)
+# if COLORMODE == 'rgb':
+#     load_image_normalize_rgb(df_list, "./data_img/", IMG_SHAPE)
+# elif COLORMODE == 'grayscale':
+#     load_image_normalize_grayscale(df_list, "./data_img/", IMG_SHAPE)
 
-train = get_images_list(train,regresion=REGRESSION)
-validation = get_images_list(validation,regresion=REGRESSION)
-test = get_images_list(test,regresion=REGRESSION)
+# kf = KFold(FOLDS,shuffle=True)
+# msew = []
+mse = []
+# r2w = []
+r2 = []
+# rmsew = []
+rmse = []
+# maew = []
+mae = []
+fold = 1
 
-datagen = ImageDataGenerator()
-print("[INFO]: Starting image load process...")
-datagen_train = image_generator(train, "./data_img/", BATCH_SIZE, datagen, IMG_SHAPE, colormode='rgb')
-print("[INFO]: Train data loaded...")
-datagen_val = image_generator(validation, "./data_img/", BATCH_SIZE, datagen, IMG_SHAPE, colormode='rgb')
-print("[INFO]: Validation data loaded...")
-datagen_test = image_generator(test, "./data_img/", 1, datagen, IMG_SHAPE, colormode='rgb', shuffle=False)
-print("[INFO]: Test data loaded...")
+random.seed(SEED)
+np.random.seed(SEED)
+tf.random.set_seed(SEED)
+# gpus = tf.config.experimental.list_physical_devices('GPU')
+# for gpu in gpus:
+#     tf.config.experimental.set_memory_growth(gpu, True)
 
-def mae(y_true, y_pred):
-    #  return (y_true - y_pred) ** 2
-    return abs(y_true - y_pred)
+################################################################################
+cnn_0 = cnn(0,IMG_SHAPE[0],IMG_SHAPE[1],depth)
+cnn_1 = cnn(1,IMG_SHAPE[0],IMG_SHAPE[1],depth)
+cnn_2 = cnn(2,IMG_SHAPE[0],IMG_SHAPE[1],depth)
 
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+x = Average()([cnn_0.output, cnn_1.output, cnn_2.output])
 
-cnn_SDM = create_CNN(IMG_SHAPE[0],IMG_SHAPE[1],3)
-cnn_NDM = create_CNN(IMG_SHAPE[0],IMG_SHAPE[1],3)
-cnn_GNDM = create_CNN(IMG_SHAPE[0],IMG_SHAPE[1],3)
+model = Model(inputs=[cnn_0.input, cnn_1.input, cnn_2.input], outputs=x)
 
-# combined_input = concatenate([cnn_SDM.output, cnn_NDM.output, cnn_GNDM.output])
-x = Average()([cnn_SDM.output, cnn_NDM.output, cnn_GNDM.output])
-
-# x = Average()([cnn_SDM.output, cnn_NDM.output, cnn_GNDM.output])
-
-model = Model(inputs=[cnn_SDM.input, cnn_NDM.input, cnn_GNDM.input], outputs=x)
-
-# model = cnn_SDM
-
-# optimizer = SGD(momentum = 0.9)
+# optimizer = RMSprop()
 optimizer = Adam()
+# optimizer = SGD(momentum = 0.9)
 
+checkpoint_filepath = './checkpoint/'
 
-callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=100)
-
-label_weights = np.zeros(len(train))
-
-model.compile(loss=MeanAbsoluteError(), optimizer=optimizer)
-
-# model.compile(loss=CategoricalCrossentropy(), optimizer=optimizer, metrics=["accuracy"])
-
-# model.compile(loss=MeanSquaredError(), optimizer=optimizer)
-
-
+# model.compile(loss=MeanSquaredError(), optimizer=optimizer, metrics=['mae'])
+model.compile(loss=MeanAbsoluteError(), optimizer=optimizer, metrics=['mae'])
 model.summary()
 
-print('GPU name:',tf.test.gpu_device_name())
+weights = model.get_weights()
 
+if RESNET:
+    print('FINE TUNNING')
+    cnn_0 = fn.create_CNN_Resnet(0,IMG_SHAPE[0],IMG_SHAPE[1],depth,True)
+    cnn_1 = fn.create_CNN_Resnet(1,IMG_SHAPE[0],IMG_SHAPE[1],depth,True)
+    cnn_2 = fn.create_CNN_Resnet(2,IMG_SHAPE[0],IMG_SHAPE[1],depth,True)
+    x = Average()([cnn_0.output, cnn_1.output, cnn_2.output])
 
+    model_ft = Model(inputs=[cnn_0.input, cnn_1.input, cnn_2.input], outputs=x)
+
+    optimizer_ft = Adam(1e-5)
+
+    model_ft.compile(loss=MeanAbsoluteError(), optimizer=optimizer_ft, metrics=['mae'])
+    model_ft.summary()
+
+################################################################################
+
+# for train_index, test_index in kf.split(df):
+#     tf.keras.backend.clear_session()
+
+print('Data:', COLORMODE)
+print('Batch:', BATCH_SIZE)
+print('Epochs:', EPOCHS)
+print('Seed:', SEED)
+if RESNET:
+    print('RESNET50')
+else:
+    print('PANORAMA-CNN')
+# print("\nTRAIN:", train_index, "\nTEST:", test_index)
+now = datetime.now()
+dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+print('[INFO]: Training -', dt_string)
+# train = df.iloc[train_index].copy()
+# test = df.iloc[test_index].copy()
+train_df = pd.read_csv('./train.csv')
+validation_df = pd.read_csv('./validation.csv')
+test_df = pd.read_csv('./test.csv')
+# calculate_weights(train)
+# calculate_weights(test)
+# print(train)
+# print(test)
+train = fn.get_images_list(train_df,COLORMODE)
+validation = fn.get_images_list(validation_df,COLORMODE,weights=False)
+test = fn.get_images_list(test_df,COLORMODE,weights=False)
+test_not_augment = fn.get_images_list(test_df,COLORMODE,augment=False,weights=False)
+datagen = ImageDataGenerator()
+print("[INFO]: Starting image load process...")
+datagen_train = fn.image_generator(train, "./data_img_norm/", BATCH_SIZE, datagen, IMG_SHAPE, colormode=COLORMODE)
+print("[INFO]: Train data loaded...")
+datagen_val = fn.image_generator(validation, "./data_img_norm/", BATCH_SIZE, datagen, IMG_SHAPE, colormode=COLORMODE, weights=False)
+print("[INFO]: Validation data loaded...")
+datagen_test = fn.image_generator(test, "./data_img_norm/", 1, datagen, IMG_SHAPE, colormode=COLORMODE, shuffle=False, weights=False)
+datagen_test_not_augment = fn.image_generator(test_not_augment, "./data_img_norm/", 1, datagen, IMG_SHAPE, colormode=COLORMODE, shuffle=False, weights=False)
+print("[INFO]: Test data loaded...")
+
+# model.set_weights(weights)
+
+early_stop_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=int(EPOCHS*0.2))
+model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+    filepath=checkpoint_filepath,
+    save_weights_only=True,
+    monitor='val_loss',
+    mode='min',
+    save_best_only=True,
+    verbose=VERBOSE)
 
 history = model.fit(
     datagen_train,
-    # validation_data=datagen_val,
+    validation_data=datagen_val,
     epochs=EPOCHS,
-    verbose=1,
+    verbose=VERBOSE,
     steps_per_epoch=(len(train) // BATCH_SIZE),
-    sample_weight=label_weights,
-    # validation_steps=(len(validation) // BATCH_SIZE),
-    # callbacks=[callback]
+    validation_steps=(len(validation) // BATCH_SIZE),
+    callbacks=[early_stop_callback, model_checkpoint_callback]
 )
 
-model.evaluate(
-    datagen_test,
-    batch_size=1,
-    verbose=1,
-    steps=len(test)
-)
+model.load_weights(checkpoint_filepath)
 
-prediction = model.predict(datagen_test,
-    verbose=1,
-    steps=len(test)
-)
+# score = model.evaluate(datagen_test, verbose=VERBOSE, steps=len(test))
+# print(f'Test loss: {score[0]} / Test mae: {score[1]}')
 
+prediction = model.predict(datagen_test, verbose=VERBOSE, steps=len(test))
 true = np.array([float(n) for n in test[:,3]])
+# weight = np.array([float(n) for n in test[:,4]])
 pred = prediction.flatten()
 
-stats_mae = abs(true-pred)
-print('Max value:',np.max(stats_mae))
-print('Min value:',np.min(stats_mae))
-print('Median:',np.median(stats_mae))
-print('Mean:',np.mean(stats_mae))
-print('Std:',np.std(stats_mae))
-print('----------------------------------')
-stats_mse = (true-pred) ** 2
-print('Max value:',np.max(stats_mse))
-print('Min value:',np.min(stats_mse))
-print('Median:',np.median(stats_mse))
-print('Mean:',np.mean(stats_mse))
-print('Std:',np.std(stats_mse))
+fn.show_stats(true,pred)
 
-def range_of_age(n,ranges):
-    for i,r in enumerate(ranges):
-        if n >= r[0] and n <= r[1]:
-            return i
+# print('MSE:', mean_squared_error(true,pred, squared=False, sample_weight=weight))
+# print('R2:', r2_score(true,pred, sample_weight=weight))
+# print('EVS:', explained_variance_score(true,pred, sample_weight=weight))
 
+# msew.append(mean_squared_error(true, pred, sample_weight=weight))
+mse.append(mean_squared_error(true, pred))
+# r2w.append(r2_score(true, pred, sample_weight=weight)*100)
+r2.append(r2_score(true, pred)*100)
+# rmsew.append(mean_squared_error(true, pred, squared= False ,sample_weight=weight))
+rmse.append(mean_squared_error(true, pred, squared= False))
+# maew.append(mean_absolute_error(true, pred,sample_weight=weight))
+mae.append(mean_absolute_error(true, pred))
 
-def precision_by_range(y_true, y_pred):
+prediction_not_augment = model.predict(datagen_test_not_augment, verbose=VERBOSE, steps=len(test_not_augment))
+true = np.array([float(n) for n in test_not_augment[:,3]])
+pred = prediction_not_augment.flatten()
 
-    prec_dic = {}
-    for r in np.arange(len(roa.ranges)):
-        prec_dic[r] = [[],[]]
+fn.show_stats(true,pred)
 
-    for yt, yp in zip(y_true, y_pred):
-        r_age = range_of_age(yt, roa.ranges)
-        # print(yt, yp, ranges[r_age])
-        dif = abs(yt - yp)
-        prec_dic[r_age][0].append(dif)
-        prec_dic[r_age][1].append(yp)
-
-    precision = {}
-    for k in prec_dic.keys():
-        values = np.array(prec_dic[k][0])
-        mean = np.mean(values)
-        std = np.std(values)
-        value_mean = np.mean(np.array(prec_dic[k][1]))
-        value_std = np.std(np.array(prec_dic[k][1]))
-        precision[roa.ranges[k]] = [value_mean,value_std,mean,std]
-
-    print(precision)
+mse.append(mean_squared_error(true, pred))
+r2.append(r2_score(true, pred)*100)
+rmse.append(mean_squared_error(true, pred, squared= False))
+mae.append(mean_absolute_error(true, pred))
 
 
-if(REGRESSION):
-    precision_by_range(true, pred)
+kfold_stats_df = pd.DataFrame()
+kfold_stats_df['MSE'] = mse
+kfold_stats_df['RMSE'] = rmse
+kfold_stats_df['MAE'] = mae
+kfold_stats_df['R2'] = r2
+# kfold_stats_df['MSEW'] = msew
+# kfold_stats_df['RMSEW'] = rmsew
+# kfold_stats_df['MAEW'] = maew
+# kfold_stats_df['R2W'] = r2w
+
+print(kfold_stats_df.to_string())
+
+if RESNET:
+    print('FINE TUNNING')
+    model_ft.load_weights(checkpoint_filepath)
+
+    early_stop_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=int(EPOCHS*0.2))
+    model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+        filepath=checkpoint_filepath,
+        save_weights_only=True,
+        monitor='val_loss',
+        mode='min',
+        save_best_only=True,
+        verbose=VERBOSE)
+
+    history = model_ft.fit(
+        datagen_train,
+        validation_data=datagen_val,
+        epochs=EPOCHS,
+        verbose=VERBOSE,
+        steps_per_epoch=(len(train) // BATCH_SIZE),
+        validation_steps=(len(validation) // BATCH_SIZE),
+        callbacks=[early_stop_callback, model_checkpoint_callback]
+    )
+
+    model_ft.load_weights(checkpoint_filepath)
+
+    # datagen_test = fn.image_generator(test, "./data_img_norm/", 1, datagen, IMG_SHAPE, colormode=COLORMODE, shuffle=False, augment=False, weights=False)
+
+    # score = model.evaluate(datagen_test, verbose=VERBOSE, steps=len(test))
+    # print(f'Test loss: {score[0]} / Test mae: {score[1]}')
+
+    prediction = model_ft.predict(datagen_test, verbose=VERBOSE, steps=len(test))
+    true = np.array([float(n) for n in test[:,3]])
+    pred = prediction.flatten()
+
+    fn.show_stats(true,pred)
+
+    mse.append(mean_squared_error(true, pred))
+    r2.append(r2_score(true, pred)*100)
+    rmse.append(mean_squared_error(true, pred, squared= False))
+    mae.append(mean_absolute_error(true, pred))
+
+    prediction_not_augment = model_ft.predict(datagen_test_not_augment, verbose=VERBOSE, steps=len(test_not_augment))
+    true = np.array([float(n) for n in test_not_augment[:,3]])
+    pred = prediction_not_augment.flatten()
+
+    fn.show_stats(true,pred)
+
+    mse.append(mean_squared_error(true, pred))
+    r2.append(r2_score(true, pred)*100)
+    rmse.append(mean_squared_error(true, pred, squared= False))
+    mae.append(mean_absolute_error(true, pred))
+
+    kfold_stats_df = pd.DataFrame()
+    kfold_stats_df['MSE'] = mse
+    kfold_stats_df['RMSE'] = rmse
+    kfold_stats_df['MAE'] = mae
+    kfold_stats_df['R2'] = r2
+
+    print(kfold_stats_df.to_string())
+    model_ft.save_weights(OUTPUT+'/model_rgb_resnet/model_rgb_resnet')
+
 else:
-    print(true,'\n',pred)
+    if COLORMODE == 'rgb':
+        folder = OUTPUT + '/model_rgb_panoramacnn/model_rgb_panoramacnn'
+    elif COLORMODE == 'grayscale':
+        folder = OUTPUT + '/model_gray_panoramacnn/model_gray_panoramacnn'
+    model.save_weights(folder)
+
+print('################################################################################')
+# msew.append(np.mean(msew))
+mse.append(np.mean(mse))
+# r2w.append(np.mean(r2w))
+r2.append(np.mean(r2))
+# rmsew.append(np.mean(rmsew))
+rmse.append(np.mean(rmse))
+# maew.append(np.mean(maew))
+mae.append(np.mean(mae))
+
+kfold_stats_df = pd.DataFrame()
+kfold_stats_df['MSE'] = mse
+kfold_stats_df['RMSE'] = rmse
+kfold_stats_df['MAE'] = mae
+kfold_stats_df['R2'] = r2
+# kfold_stats_df['MSEW'] = msew
+# kfold_stats_df['RMSEW'] = rmsew
+# kfold_stats_df['MAEW'] = maew
+# kfold_stats_df['R2W'] = r2w
+
+print('\n')
+print('Data:', COLORMODE)
+print('Batch:', BATCH_SIZE)
+print('Epochs:', EPOCHS)
+print('Seed:', SEED)
+if RESNET:
+    print('RESNET50')
+else:
+    print('PANORAMA-CNN')
+
+now = datetime.now()
+dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+print(dt_string)
+
+print(kfold_stats_df.to_string())
+
+# train = pd.read_csv('./train.csv')
+# test = pd.read_csv('./test.csv')
+
+# # train, validation = train_test_split(train_val, test_size=0.0)
+
+# train = get_images_list(train,regresion=REGRESSION)
+# # validation = get_images_list(validation,regresion=REGRESSION)
+# test = get_images_list(test,regresion=REGRESSION)
+
+# datagen = ImageDataGenerator()
+# print("[INFO]: Starting image load process...")
+# datagen_train = image_generator(train, "./data_img/", BATCH_SIZE, datagen, IMG_SHAPE, colormode=COLORMODE)
+# print("[INFO]: Train data loaded...")
+# # datagen_val = image_generator(validation, "./data_img/", 1, datagen, IMG_SHAPE, colormode='rgb')
+# # print("[INFO]: Validation data loaded...")
+# datagen_test = image_generator(test, "./data_img/", 1, datagen, IMG_SHAPE, colormode=COLORMODE, shuffle=False)
+# print("[INFO]: Test data loaded...")
+
+# # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+# if COLORMODE == 'rgb':
+#     cnn_SDM = create_CNN(0,IMG_SHAPE[0],IMG_SHAPE[1],3)
+#     cnn_NDM = create_CNN(1,IMG_SHAPE[0],IMG_SHAPE[1],3)
+#     cnn_GNDM = create_CNN(2,IMG_SHAPE[0],IMG_SHAPE[1],3)
+# elif COLORMODE == 'grayscale':
+#     cnn_SDM = create_CNN(0,IMG_SHAPE[0],IMG_SHAPE[1],1)
+#     cnn_NDM = create_CNN(1,IMG_SHAPE[0],IMG_SHAPE[1],1)
+#     cnn_GNDM = create_CNN(2,IMG_SHAPE[0],IMG_SHAPE[1],1)
+
+# # combined_input = concatenate([cnn_SDM.output, cnn_NDM.output, cnn_GNDM.output])
+# # x = Dense(1,activation='ReLU')(combined_input)
+
+# x = Average()([cnn_SDM.output, cnn_NDM.output, cnn_GNDM.output])
+
+# print('-----------------------------------------------------------------------')
+# print(cnn_SDM.input)
+# print(cnn_NDM.input)
+# print(cnn_GNDM.input)
+
+# model = Model(inputs=[cnn_SDM.input, cnn_NDM.input, cnn_GNDM.input], outputs=x)
 
 
-# mostrarEvolucion(history)
+# # optimizer = SGD(momentum = 0.9)
+# optimizer = Adam()
+
+# callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=20)
+
+# # model.compile(loss=MeanAbsoluteError(), optimizer=optimizer)
+
+# # model.compile(loss=CategoricalCrossentropy(), optimizer=optimizer, metrics=["accuracy"])
+
+# model.compile(loss=MeanSquaredError(), optimizer=optimizer, metrics=['mae'])
+
+# model.summary()
+
+# print('GPU name:',tf.test.gpu_device_name())
+
+
+
+# history = model.fit(
+#     datagen_train,
+#     # validation_data=datagen_val,
+#     epochs=EPOCHS,
+#     verbose=1,
+#     steps_per_epoch=(len(train) // BATCH_SIZE),
+#     # validation_steps=(len(validation) // 1),
+#     callbacks=[callback]
+# )
+
+# # model.evaluate(
+# #     datagen_test,
+# #     batch_size=1,
+# #     verbose=1,
+# #     steps=len(test)
+# # )
+
+
+# prediction = model.predict(datagen_test,
+#     verbose=1,
+#     steps=len(test)
+# )
+
+# true = np.array([float(n) for n in test[:,3]])
+# pred = prediction.flatten()
+
+# show_stats(true,pred,"result_training_test")
+
+# # for i,l in enumerate(model.layers):
+# #     for w in l.weights:
+# #         print(i,w.shape)
+
+# def show_filter(filters):
+#     for f in filters:
+#         # print(model.layers[f].weights[0])
+#         filter = model.layers[f].weights[0]
+#         for i,img in enumerate(np.split(filter,64,axis=3)):
+#             img = np.squeeze(img, axis=3)
+#             # img = np.swapaxes(img, 0,2)
+#             print(img, img.shape)
+#             cv.imwrite('./filters/6_'+str(i)+'.png',(img - img.min()) / (img.max() - img.min())*255.0)
+#         # for d in filter:
+#         #     print(d.shape)
+
+#         images = [np.squeeze(img, axis=3) for img in np.split(filter,64,axis=3)]
+
+#         import matplotlib.pyplot as plt
+#         fig, axes = plt.subplots(8,8, figsize=(5,5))
+#         for i,ax in enumerate(axes.flat):
+#             img = images[i]
+#             ax.imshow((img - img.min()) / (img.max() - img.min()))
+#             ax.axis('off')
+#     plt.show()
+
+# # show_filter([6,7,8])
+
+# # mostrarEvolucion(history)

@@ -21,3 +21,5 @@ src/__pycache__/*
 log
 sys
 *.sh
+src/prueba.py 
+src/calculate_LDS.py

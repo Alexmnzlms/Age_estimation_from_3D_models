@@ -123,6 +123,3 @@ kfold_stats_df['MAE'] = mae
 kfold_stats_df['R2'] = r2
 
 print(kfold_stats_df.to_string())
-
-# score = model.evaluate(datagen_test, verbose=VERBOSE, steps=len(test))
-# print(f'Test loss: {score[0]} / Test mae: {score[1]}')

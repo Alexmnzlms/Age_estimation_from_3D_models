@@ -7,8 +7,6 @@ from collections import Counter
 import scipy.ndimage as sci
 
 import functions as fn
-# IMG_SHAPE_RGB = (36,108)
-# IMG_SHAPE_GRAY = (108,108)
 IMG_SHAPE_RGB = (36,108)
 IMG_SHAPE_GRAY = (108,108)
 

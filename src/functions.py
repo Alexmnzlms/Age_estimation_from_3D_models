@@ -48,11 +48,6 @@ def create_CNN(n, width, height, depth, summary = False):
 
     x = inputs
 
-    # resnet = ResNet50(include_top=False, input_tensor=inputs)
-    # resnet.layers.pop(0)
-    # resnet.trainable = False
-    # x = resnet(x)
-
     for i, f in enumerate(filters):
         x = ZeroPadding2D(padding=2)(x)
         x = Conv2D(f, (f_size[i],f_size[i]), padding="valid", activation='ReLU')(x)
@@ -67,11 +62,8 @@ def create_CNN(n, width, height, depth, summary = False):
 
     model = Model(inputs, x)
 
-    # model.layers[1]._name += ('_'+str(n))
     if summary:
         model.summary()
-
-    # plot_model(model, to_file='PANORAMA.png', show_shapes=True, show_layer_names=False)
 
     return model
 
@@ -83,19 +75,10 @@ def create_CNN_Resnet(n, width, height, depth, trainable = False, summary=False)
     resnet = ResNet50(include_top=False, input_tensor=inputs, input_shape=input_shape)
     resnet.layers.pop(0)
     resnet.trainable = trainable
-    # vgg = VGG16(include_top=False, input_tensor=inputs)
-    # vgg.layers.pop(0)
-
-    # for i, layer in enumerate(resnet.layers):
-    #     layer._name = layer._name+'_'+str(n)
-
-    # for i, layer in enumerate(resnet.layers):
-    #     print(layer._name)
 
     model = Sequential()
     model.add(inputs)
     model.add(resnet)
-    # model.add(vgg)
     model.add(Flatten())
     model.add(Dense(100,activation='ReLU'))
     model.add(Dense(100,activation='ReLU'))
@@ -103,18 +86,9 @@ def create_CNN_Resnet(n, width, height, depth, trainable = False, summary=False)
     model.add(Dense(1,activation='ReLU'))
 
     model.layers[0]._name += ('_'+str(n))
-    # for i, layer in enumerate(model.layers):
-    #     print(layer._name)
 
     if summary:
         model.summary()
-
-    # plot_model(model, to_file='RESNET.png', show_shapes=True, show_layer_names=False)
-
-    # model.input.name += ('_'+str(n))
-    # model.input.type_spec.name = model.input.name
-    
-    # print(model.input)
 
     return model
 
@@ -152,40 +126,12 @@ def get_images_list(dataframe,colormode,augment=True,weights=True):
 
     return np.array(image_list)
 
-def rotate_image(image, img_shape, shuffle_pos):
-    rot_image = np.zeros((img_shape[0],int(img_shape[1]/1.5),3))
-    rot_image2 = np.zeros_like(image)
-    img_max = int(img_shape[1]/1.5)
-    rot_image[:,0:int(img_shape[1]/1.5),] = image[:,0:int(img_shape[1]/1.5):]
-    rot_image2[:,:(img_max-shuffle_pos),] = rot_image[:,shuffle_pos:]
-    rot_image2[:,(img_max-shuffle_pos):img_max,] = rot_image[:,:shuffle_pos]
-    rot_image2[:,img_max:,] = rot_image2[:,0:int(img_max/2)]
-    # cv.imshow('image',image)
-    # cv.imshow('rot_image',rot_image2)
-    # # image_opencv = cv.imread(img_path)
-    # # cv.imshow('image_opencv',image_opencv)
-    # cv.imwrite('./data_img/1_Dch/1_Dch_panorama_ext_Y_2.png', image)
-    # cv.waitKey()
-    # cv.destroyAllWindows()
-
-    return rot_image2
-
 def cached_img_read(img_path, img_shape, colormode, image_cache):
     if img_path not in image_cache.keys():
-        # print(img_path)
         image = img_to_array(load_img(img_path, color_mode=colormode, target_size=img_shape, interpolation='bilinear')).astype(np.float32)
         image = image / 255.0
         if colormode == 'rgb':
             image = cv.cvtColor(image,cv.COLOR_BGR2RGB)
-        # image = rotate_image(image, img_shape, shuffle_pos)
-        # rand = random.randint(-1,2);
-        # if rand != 2 and augment:
-        #     image = cv.flip(image,rand)
-        # if colormode == 'grayscale' and len(np.shape(image)) < 3:
-        #     # print('pre',img_path,np.shape(image))
-        #     image = np.expand_dims(image,2)
-            # print('pos',img_path,np.shape(image))
-        # cv.imwrite('./see_img/'+img_path.split('/')[3][:-4]+'_'+str(rand)+'.png', image*255.0)
         image_cache[img_path] = image
     
     return image_cache[img_path]
@@ -221,8 +167,6 @@ def image_generator(images, dir, batch_size, datagen, img_shape=(108,108), color
             img2 = read_images_gen([b[1] for b in batch], dir, img_shape, datagen, colormode, image_cache)
             img3 = read_images_gen([b[2] for b in batch], dir, img_shape, datagen, colormode, image_cache)
             label = np.array([b[3] for b in batch]).astype(np.float32)
-            # label = np.array([b[1] for b in batch]).astype(np.float32)
-            # print([img1, img2, img3], label)
             if weights:
                 label_weights = np.array([b[4] for b in batch]).astype(np.float32)
                 yield ([img1, img2, img3], label, label_weights)
@@ -233,13 +177,11 @@ def load_image_normalize_grayscale(images,dir,img_shape,fit_data = True,list_val
     if fit_data:
         img_mean = []
         img_std = []
-        load_images = []
         for img in images:
             for i in img[:3]:
                 image = img_to_array(load_img(dir+i, color_mode='grayscale', target_size=img_shape, interpolation='bilinear')).astype(np.float32) / 255.0
                 img_mean.append(np.mean(image))
                 img_std.append(np.std(image))
-                # load_images.append(image)
 
 
         img_mean = np.mean(img_mean)
@@ -267,7 +209,6 @@ def load_image_normalize_grayscale(images,dir,img_shape,fit_data = True,list_val
             stds.append(np.std(image))
 
             cv.imwrite('./data_img_norm/'+i,image)
-            # print('./data_img_norm/'+i)
 
     print('Media final', np.mean(means), np.mean(stds))
     return [img_mean, img_std]
@@ -280,15 +221,9 @@ def load_image_normalize_rgb(images,dir,img_shape,fit_data = True,list_values = 
         r_std = []
         g_std = []
         b_std = []
-        load_images = []
         for img in images:
             for i in img[:3]:
-                # print(dir,i)
                 image = img_to_array(load_img(dir+i, color_mode='rgb', target_size=img_shape, interpolation='bilinear')).astype(np.float32) / 255.0
-                # print(np.max(image))
-                # if colormode == 'rgb':
-                #     image = cv.cvtColor(image,cv.COLOR_BGR2RGB)
-                # print(np.shape(image))
                 r, g, b = np.split(image,3,axis=2)
                 r_mean.append(np.mean(r))
                 g_mean.append(np.mean(g))
@@ -296,7 +231,6 @@ def load_image_normalize_rgb(images,dir,img_shape,fit_data = True,list_values = 
                 r_std.append(np.std(r))
                 g_std.append(np.std(g))
                 b_std.append(np.std(b))
-                # load_images.append(image)
 
         r_mean = np.mean(r_mean)
         r_std = np.mean(r_std)
@@ -308,10 +242,7 @@ def load_image_normalize_rgb(images,dir,img_shape,fit_data = True,list_values = 
         print(r_mean,r_std)
         print(g_mean,g_std)
         print(b_mean,b_std)
-        # mean_image = np.stack((r_channel,g_channel,b_channel), axis=2)
-        # print(np.shape(mean_image))
-        # cv.imshow('Image', mean_image/255.0)
-        # cv.waitKey()
+
     else:
         r_mean = list_values[0]
         r_std = list_values[1]
@@ -331,7 +262,6 @@ def load_image_normalize_rgb(images,dir,img_shape,fit_data = True,list_values = 
 
     for img in images:
         for i in img[:3]:
-            # print(dir,i)
             image = img_to_array(load_img(dir+i, color_mode='rgb', target_size=img_shape, interpolation='bilinear')).astype(np.float32) / 255.0
 
             r, g, b = np.split(image,3,axis=2)
@@ -345,26 +275,17 @@ def load_image_normalize_rgb(images,dir,img_shape,fit_data = True,list_values = 
             means.append(np.mean(image))
             stds.append(np.std(image))
 
-            # print(np.shape(image))
-            # cv.imshow('',image)
-            # cv.waitKey()
             cv.imwrite('./data_img_norm/'+i,image)
-            # print('./data_img_norm/'+i)
-            # print('./data_img_norm/'+i)
-            # print(np.mean(image))
 
     print('Media final', np.mean(means), np.mean(stds))
     return [r_mean,r_std,g_mean,g_std,b_mean,b_std]
 
-def mostrarEvolucion(hist, save=False, dyh=""):
+def mostrarEvolucion(hist):
     loss = hist.history['loss']
     val_loss = hist.history['val_loss']
     plt.plot(loss)
     plt.plot(val_loss)
     plt.legend(['Training loss', 'Validation loss'])
-    #   if save:
-    #     name = "Loss_" + dyh
-    #     plt.savefig(name)
     plt.show()
 
 def bin(age, age_list):
@@ -384,37 +305,28 @@ def inverse(x):
 def calculate_weights(sample_df):
     age_list = sample_df['Age'].to_list()
     bin_index_per_label = [bin(label,age_list) for label in age_list]
-    # print(bin_index_per_label, len(bin_index_per_label))
-
+    
     N_ranges = max(bin_index_per_label) + 1
     num_samples_of_bin = dict(Counter(bin_index_per_label))
-    # print(num_samples_of_bin)
+
     emp_label_dist = [num_samples_of_bin.get(i,0) for i in np.arange(N_ranges)]
-    # print(emp_label_dist, len(emp_label_dist))
+   
     lds_kernel = cv.getGaussianKernel(5,2).flatten()
     eff_label_dist = sci.convolve1d(np.array(emp_label_dist), weights=lds_kernel, mode='constant')
-    # print(eff_label_dist, len(eff_label_dist))
+    
     eff_num_per_label = [eff_label_dist[bin_idx] for bin_idx in bin_index_per_label]
-    # print(eff_num_per_label)
+    
     weights = [inverse(x) for x in eff_num_per_label]
-    # weights = [1.0 for x in eff_num_per_label]
 
     sample_df['Weight'] = weights
 
 def train_test_split(sample_df, size):
     dic_aux = {}
-    # for x in np.arange(len(roa.ranges)):
-    #### FOR INIT
-    # for x in np.arange(56):
-    # sub_df = sample_df[sample_df["Range"] == x]
     sub_df = sample_df
-    # print(sub_df)
     column = 'Number'
     column_number = 0
 
     range = np.unique(np.array(sub_df[column].to_list()))
-
-    # print(range)
 
     div = int(len(range) * size)
     if div == 0:
@@ -422,12 +334,6 @@ def train_test_split(sample_df, size):
 
     np.random.shuffle(range)
 
-    # print(range)
-
-    # print(range[:div])
-    # print(range[div:])
-
-    
     for i in range[:div]:
         for name in sub_df[sub_df[column] == i].values:
             dic_aux[name[column_number]] = 'Train'
@@ -435,29 +341,19 @@ def train_test_split(sample_df, size):
     for i in range[div:]:
         for name in sub_df[sub_df[column] == i].values:
             dic_aux[name[column_number]] = 'Test'
-    #### FOR END
-    # print(dic_aux)
 
     set_list = []
 
     for i in sample_df[column].values:
         set_list.append(dic_aux[i])
     
-    # print(set_list)
-
     sample_df.insert(0,'Set', set_list, True)
 
     train_df = sample_df[sample_df["Set"] == 'Train']
     train_df = train_df.drop(columns=["Set"])
-    # train_df = train_df.drop(columns=["Set","Range"])
-    # print(train_df)
-    # train_df.to_csv('./train.csv',index=False)
 
     test_df = sample_df[sample_df["Set"] == 'Test']
     test_df = test_df.drop(columns=["Set"])
-    # test_df = test_df.drop(columns=["Set","Range"])
-    # print(test_df)
-    # test_df.to_csv('./test.csv',index=False)
 
     return train_df, test_df
 
@@ -474,7 +370,6 @@ def precision_by_range(y_true, y_pred, ranges, metric='mae'):
 
     for yt, yp in zip(y_true, y_pred):
         r_age = range_of_age(yt, ranges)
-        # print(yt, yp, ranges[r_age])
 
         if metric == 'mae':
             dif = abs(yt - yp)
@@ -517,7 +412,6 @@ def precision_by_range(y_true, y_pred, ranges, metric='mae'):
     return df_precision
 
 def show_stats(true,pred,metric_range='mae'):
-    # f = open(file, "w")
     stats_mae = abs(true-pred)
     stats_mse = (true-pred)*(true-pred)
     measures = [stats_mae, stats_mse]
@@ -534,18 +428,6 @@ def show_stats(true,pred,metric_range='mae'):
     df_stats['99% value:'] = [np.percentile(m,99) for m in measures]
     df_stats['Min value:'] = [np.min(m) for m in measures]
     df_stats['Max value:'] = [np.max(m) for m in measures]
-    
-    # df_test = pd.DataFrame()
-    # names = np.array([n.split('/')[0] for n in test[:,0]])
-    # error = [abs(t-p) for t,p in zip(true,pred)]
-    # df_test['Name'] = names
-    # df_test['True'] = true
-    # df_test['Pred'] = pred
-    # df_test['Error'] = error
-    # print(df_test.to_string())
-    # f.write(df_test.to_string())
-
-    # f.write('\n\n\n')
 
     ranges = [roa.ranges_todd,roa.ranges_5,roa.ranges_3]
     for range in ranges:
@@ -555,28 +437,5 @@ def show_stats(true,pred,metric_range='mae'):
         elif metric_range == 'mse':
             print('Mean of means:', np.mean(df_precision['MSE Mean'].to_numpy()))
         print(df_precision.to_string())
-    # f.write(df_precision.to_string())
-
-    # f.write('\n\n\n')
 
     print(df_stats.to_string())
-    # f.write(df_stats.to_string())
-
-    # print('\nR2:', r2_score(true,pred)*100)
-
-    # f.write('\n\n')
-
-    # f.write('\nR2:'+str(r2_score(true,pred)*100))
-
-    # if colormode == 'rgb':
-    #     file = path+'rgb_'
-    # elif colormode == 'grayscale':
-    #     file = path+'rgb_'
-
-    # if resnet:
-    #     file = file+'resnet_'
-    # else:
-    #     file = file+'panorama_'
-
-    # df_precision.to_csv(path+'by_range.csv')
-    # df_stats.to_csv(path+'total.csv')

@@ -1,0 +1,390 @@
+\chapter{Experimentación}\label{chap:experimentos}
+
+\section{Conjunto de datos}
+\label{sec:conjuntodedatosintro}
+El problema de la estimación de la edad a partir de modelos 3D de sínfisis púbicas abordado en este TFG y los resultados obtenidos en él, dependerán en gran medida del conjunto de datos disponible. Para llevar a cabo esta tarea, utilizaremos el conjunto de modelos 3D de las sínfisis púbicas escaneados manualmente por personal del laboratorio de Antropología Física del Departamento de Medicina Legal, Toxicología y Antropología Física de la Universidad de Granada.\\
+
+Este conjunto de datos cuenta con 565 parejas de sínfisis púbicas humanas comprendidas en un rango de entre 15 y 82 años. Cada pareja está formada por dos modelos 3D, uno para el lado derecho de la sínfisis y otro para el lado izquierdo (salvo excepciones de muestras que solo cuentan con uno de sus lados). En la práctica contamos con un total de 1104 modelos 3D. Podemos ver en la Figura \ref{fig:izqdch} como el número de muestras del lado izquierdo y del lado derecho están perfectamente balanceados.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.65\textwidth]{imagenes/Numero de muestras Izquierda y Derecha.pdf}
+    \caption{Numero de muestras Izquierda y Derecha.}
+    \label{fig:izqdch}
+\end{figure}
+
+\newpage
+
+Uno de los aspecto más importantes a analizar es la distribución de la edad de las muestras, que se muestra en la Figura \ref{fig:histograma}. Como podemos ver, los datos están fuertemente desbalanceados. Las muestras de entre menos de 18 años y más de 65 no superan los 10 ejemplos, mientras que las muestras contenidas entre 18 y 65 presentan números muy dispares. Este desbalanceo puede notarse mucho más si observamos la distribución de las muestras en el rango de fases de edad propuestas por Todd (ver Figura \ref{fig:histogramaTodd}).
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{imagenes/Histograma.pdf}
+    \caption{Histograma de la edad de las muestras de sínfisis púbicas.}
+    \label{fig:histograma}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{imagenes/Histograma por rangos de Todd.pdf}
+    \caption{Histograma de la edad de las muestras de sínfisis púbicas por rangos de Todd.}
+    \label{fig:histogramaTodd}
+\end{figure}
+
+No hay un número equitativo de muestras para cada edad, siendo que los huesos correspondientes a niños o ancianos son los que menor porcentaje del total representan. Dentro del grupo de los adultos (entre 19 y 64 años), encontramos que apenas hay muestras de individuos de 25 años, mientras que, el mayor número de muestras pertenecen a individuos de 52 años.\\
+
+Además el total de muestras, 1104 modelos 3D, puede parecer grande pero queda bastante mermado si lo comparamos con otros conjuntos de datos disponibles para tareas de reconocimiento de imágenes. Estos conjuntos cuentan con decenas de miles de ejemplos de entrenamiento para que un modelo pueda aprender a realizar una tarea de clasificación o de regresión (p.ej. estimación de la edad a partir de fotografías humanas).\\
+
+% \sout{Nos encontramos ante un problema de Deep Learning}, por lo que los datos
+Dado que estamos enfocando este problema desde el paradigma del DL, los datos empleados determinarán directamente el resultado final de estimación que se obtendrá. Es necesario emplear estrategias que permitan paliar la falta de datos y el desbalanceo presente en los mismos, de forma que el modelo final entrenado sea capaz de clasificar correctamente muestras de cualquier edad, aunque el conjunto de datos de entrenamiento no tuviera un elevado número de muestras correspondientes a dicha edad. Para conseguir esto se han seguido dos estrategias: aplicación de técnicas de aumento de datos y aplicación de LDS para balancear las etiquetas.
+% \begin{figure}[ht]
+%     \centering
+%     \includegraphics[width=0.9\textwidth]{imagenes/Histograma.pdf}
+%     \repeatcaption{fig:histograma}{Histograma de la edad de las muestras de sínfisis púbicas.}
+%     \label{fig:histograma2}
+% \end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Aumento de datos}
+
+La primera de las estrategias adoptadas es la aplicación de \say{data augmentation} o aumento de datos. Esta es una técnica muy común en problemas de DL y consiste en que para cada muestra del conjunto de datos se generan nuevas muestras aplicando pequeñas transformaciones como rotaciones, traslaciones, cambio de brillo, etc.\\
+
+Para este problema se ha aplicado un enfoque distinto. Generalmente existen dos maneras de aplicar aumento de datos. Si los datos con los que se trabaja se tratan de imágenes, se aplican transformaciones a los datos de entrada para generar nuevas muestras. Si, por otro lado, trabajamos directamente con vectores de características, existen algoritmos como SMOTE \cite{chawla2002smote} que pueden generar nuevos ejemplos sintéticos a partir de datos reales para aumentar los datos de entrenamiento. La estrategia de utilizar SMOTE no es aplicable en nuestro caso, porque dependeríamos de un extractor de características y al trabajar con datos reales (huesos de personas reales) podríamos estar introduciendo un error derivado de crear ejemplos no realistas. Por otro lado la estrategia de generar nuevas muestras modificando las imágenes sería una alternativa viable, pero no estaríamos introduciendo nueva información de calidad al modelo, simplemente estaríamos realimentando la red con los mismos modelos.\\
+\newpage
+La estrategia que hemos adoptado se basa en realizar el aumento de datos directamente sobre los modelos 3D. Para cada modelo 3D, que tiene una pose por defecto, se generan tres proyecciones PANORAMA según lo especificado en el Capítulo \ref{chap:metodologia}. Cada modelo se rotará un ángulo aleatorio en el eje Y de forma que la cara principal del hueso permanezca perfectamente visible en las representaciones. Estas rotaciones aleatorias se realizan un total de tres veces. En la Tabla \ref{tbl:rotY} podemos ver un ejemplo de la aplicación de estas rotaciones.
+
+\begin{table}[ht!]
+  \centering
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{ | c | c | c | c |}
+    \hline
+    Pose base & Primera rotación en Y & Segunda rotación en Y & Tercera rotación en Y \\ \hline
+    \begin{minipage}{.3\textwidth}
+      \includegraphics[width=\linewidth, height=60mm]{imagenes/modelbase.png}
+    \end{minipage}
+    &
+    \begin{minipage}{.3\textwidth}
+      \includegraphics[width=\linewidth, height=60mm]{imagenes/modelY1.png}
+    \end{minipage}
+    & 
+    \begin{minipage}{.3\textwidth}
+      \includegraphics[width=\linewidth, height=60mm]{imagenes/modelY2.png}
+    \end{minipage}
+    & 
+    \begin{minipage}{.3\textwidth}
+      \includegraphics[width=\linewidth, height=60mm]{imagenes/modelY3.png}
+    \end{minipage}
+    \\ \hline
+  \end{tabular}
+  }
+  \caption{Rotaciones en el eje Y de una muestra del conjunto de datos.}
+  \label{tbl:rotY}
+\end{table}
+
+Para cada una de estas rotaciones y en la pose original, se rotará el modelo un ángulo aleatorio en sentido positivo y negativo en los ejes X (inclinación) y Z (cabeceo). Aplicando estas rotaciones se obtendrán 5 proyecciones por eje contando las cuatro rotaciones aleatorias en X y Z y la pose sin aplicar rotación. En la Tabla \ref{tbl:rotXZ} podemos apreciar un ejemplo de estas rotaciones. Como estas rotaciones se realizan cuatro veces (pose base más tres rotaciones en Y) se generan un total de 60 imágenes por cada modelo entre los tres ejes (20 para cada eje). En la Figura \ref{fig:dataaugment} puede verse un ejemplo de esta estrategia de aumento de datos aplicado a una muestra del conjunto de datos.
+
+\begin{table}[ht!]
+  \centering
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{ | c | c | c | c | c |}
+    \hline
+    Pose base & Rotación positiva en X & Rotación negativa en X & Rotación positiva en Z & Rotación negativa en Z \\ \hline
+    \begin{minipage}{.3\textwidth}
+      \includegraphics[width=\linewidth, height=60mm]{imagenes/modelbase.png}
+    \end{minipage}
+    &
+    \begin{minipage}{.3\textwidth}
+      \includegraphics[width=\linewidth, height=60mm]{imagenes/modelX1.png}
+    \end{minipage}
+    & 
+    \begin{minipage}{.3\textwidth}
+      \includegraphics[width=\linewidth, height=60mm]{imagenes/modelX2.png}
+    \end{minipage}
+    & 
+    \begin{minipage}{.3\textwidth}
+      \includegraphics[width=\linewidth, height=60mm]{imagenes/modelZ1.png}
+    \end{minipage}
+    & 
+    \begin{minipage}{.3\textwidth}
+      \includegraphics[width=\linewidth, height=60mm]{imagenes/modelZ2.png}
+    \end{minipage}
+    \\ \hline
+  \end{tabular}
+  }
+  \caption{Rotaciones en los ejes X y Z de una muestra del conjunto de datos.}
+  \label{tbl:rotXZ}
+\end{table}
+
+\begin{figure}[!ht]
+    \centering
+    \subfigure{\includegraphics[width=0.4\textwidth]{imagenes/214_Izq_0_panorama_ext_Y.png}}
+    \subfigure{\includegraphics[width=0.4\textwidth]{imagenes/214_Izq_1_panorama_ext_Y.png}} 
+    \subfigure{\includegraphics[width=0.4\textwidth]{imagenes/214_Izq_2_panorama_ext_Y.png}} 
+    \subfigure{\includegraphics[width=0.4\textwidth]{imagenes/214_Izq_3_panorama_ext_Y.png}} 
+    \subfigure{\includegraphics[width=0.4\textwidth]{imagenes/214_Izq_4_panorama_ext_Y.png}} 
+    \subfigure{\includegraphics[width=0.4\textwidth]{imagenes/214_Izq_5_panorama_ext_Y.png}} 
+    \subfigure{\includegraphics[width=0.4\textwidth]{imagenes/214_Izq_6_panorama_ext_Y.png}} 
+    \subfigure{\includegraphics[width=0.4\textwidth]{imagenes/214_Izq_7_panorama_ext_Y.png}} 
+    \subfigure{\includegraphics[width=0.4\textwidth]{imagenes/214_Izq_8_panorama_ext_Y.png}} 
+    \subfigure{\includegraphics[width=0.4\textwidth]{imagenes/214_Izq_9_panorama_ext_Y.png}} 
+    \subfigure{\includegraphics[width=0.4\textwidth]{imagenes/214_Izq_10_panorama_ext_Y.png}} 
+    \subfigure{\includegraphics[width=0.4\textwidth]{imagenes/214_Izq_11_panorama_ext_Y.png}} 
+    \subfigure{\includegraphics[width=0.4\textwidth]{imagenes/214_Izq_12_panorama_ext_Y.png}} 
+    \subfigure{\includegraphics[width=0.4\textwidth]{imagenes/214_Izq_13_panorama_ext_Y.png}} 
+    \subfigure{\includegraphics[width=0.4\textwidth]{imagenes/214_Izq_14_panorama_ext_Y.png}} 
+    \subfigure{\includegraphics[width=0.4\textwidth]{imagenes/214_Izq_15_panorama_ext_Y.png}} 
+    \subfigure{\includegraphics[width=0.4\textwidth]{imagenes/214_Izq_16_panorama_ext_Y.png}} 
+    \subfigure{\includegraphics[width=0.4\textwidth]{imagenes/214_Izq_17_panorama_ext_Y.png}} 
+    \subfigure{\includegraphics[width=0.4\textwidth]{imagenes/214_Izq_18_panorama_ext_Y.png}} 
+    \subfigure{\includegraphics[width=0.4\textwidth]{imagenes/214_Izq_19_panorama_ext_Y.png}} 
+    \caption{Proyecciones en el eje Y de una muestra del conjunto de datos después de aplicar la técnica de aumento de datos.}
+    \label{fig:dataaugment}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+~\newpage
+
+\subsection{Balanceo de datos}
+\label{sec:balanceo}
+
+La segunda estrategia que seguiremos será aplicar LDS al conjunto de datos. Como ya comentamos en la sección \ref{sec:DIR}, LDS es una técnica aplicable en problemas de regresión donde el conjunto de datos esta desbalanceado.\\
+
+Para aplicar esta técnica, una vez obtenida la distribución de densidad de etiquetas (Figura \ref{fig:histograma}) esta se convoluciona con un Kernel Gaussiano de tamaño 5 y $\sigma=2$. Esto nos genera una nueva distribución de densidad de etiquetas en base a la continuidad de las mismas. 
+El enfoque de este método se basa en que dos muestras que se encuentren en clases cercanas (muestras de 24, 25 y 26 años) tendrán características similares, por lo que la importancia de las mismas puede repartirse. Entendemos por importante una muestra que no es representativa, es decir, que es única o poco frecuente en el conjunto de datos. La distribución que obtenemos tras aplicar esta técnica puede verse en la Figura \ref{fig:histogramalds}.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{imagenes/Histograma (LDS).pdf}
+    \caption{Histograma del conjunto de datos una vez aplicado LDS.}
+    \label{fig:histogramalds}
+\end{figure}
+
+Vemos que la distribución de densidad se ha suavizado considerablemente. Se puede apreciar como en el caso de las muestras de 24, 25 y 26 años ya no existe un hueco en la distribución. Esto se entiende como que, dado que hay muchas muestras de 24 y 26 años, la falta de muestras de 25 años no es un problema grave. Sin embargo, vemos como ha desaparecido en la gráfica el valor para muestras de 82 años. Esto implica que las muestras de 82 años tienen una gran importancia porque su ausencia no puede compensarse de ninguna manera.\\
+
+En base a esta distribución de densidad, se calcula el peso que tiene cada muestra en el conjunto de datos como la inversa de la distribución suavizada. Una muestra de 82 años tendrá el máximo peso (1), mientras que otra de 25 no recibirá un peso elevado a pesar de su escasez en el conjunto de datos. Estos pesos se utilizarán en el proceso de entrenamiento para poder guiar al modelo de forma que dé mayor importancia a las muestras más escasas y que no puedan ser compensadas.
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Métricas y protocolo de validación experimental}
+
+\subsection{Métricas de calidad consideradas}
+
+Como métricas para medir la efectividad del entrenamiento del modelo se proponen las siguientes:
+\begin{itemize}
+    \item \textit{Mean Absolute Error (MAE)}: Desviación media en valor absoluto entre los valores predecidos y los reales.\\
+    
+    $MAE = \frac{1}{N}\sum^{N}_{i=1}|(\hat{Y}_i - Y_i)|$
+    \item \textit{Root Mean Square Error (RMSE)}: Raíz cuadrada de la desviación media de las diferencias al cuadrado.\\
+    
+    $RMSE = \sqrt{\frac{1}{N}\sum^{N}_{i=1}(\hat{Y}_i - Y_i)^2}$
+\end{itemize}
+
+Se proponen estas métricas dado que son las métricas de referencia presentes en el estado del arte. De esta forma se podrán comparar los resultados obtenidos con los del estado del arte de forma directa.
+
+\subsection{Hiperparámetros utilizados}
+Para el entrenamiento de los modelos se han definido los siguientes hiperparámetros:
+\begin{itemize}
+    \item Épocas: 100. Se ha establecido el límite en 100 épocas para que el tiempo de entrenamiento máximo no fuera demasiado elevado y el modelo pudiera converger a buenos resultados
+    \item Tamaño de Batch: 32. Se ha establecido este tamaño de batch dado que un tamaño mayor provocaba el llenado completo de la memoria gráfica disponible. Se utiliza una potencia de dos para aprovechar las optimizaciones de la gráfica utilizada para el entrenamiento.
+    \item Dropout: 10\%. Probabilidad de desactivar neuronas durante el entrenamiento.
+    \item Función de perdida: MAE. Se ha establecido MAE como función de pérdida tanto para los conjuntos de train como validación.
+    \item Early stopping: 20 épocas. El \say{early stopping} es una técnica que consiste en detener el entrenamiento si el modelo no ha obtenido una mejora en una métrica específica en un número concreto de épocas. Se ha establecido un 20\% de las épocas máximas como límite. La métrica para determinar la detención del entrenamiento ha sido el MAE obtenido en el conjunto de validación.
+    \item Optimizador: Adam. Este es un método de gradiente descendente estocástico que se basa en la estimación adaptativa de momentos de primer y segundo orden. Este método es eficiente desde el punto de vista computacional, tiene pocos requisitos de memoria, es invariable al reescalado diagonal de los gradientes y se adapta bien a los problemas que son grandes en términos de datos o parámetros \cite{kingma2014adam}.
+    \item Se ha establecido además un sistema de checkpoints. Este sistema guarda siempre el mejor modelo en términos del MAE obtenido en el conjunto de validación, de forma que el modelo resultado obtenido después del entrenamiento es siempre el mejor.
+\end{itemize}
+
+\subsection{Protocolo de entrenamiento}
+
+% - Transfer Learning \& fine tuning
+
+Para el entrenamiento de todos los modelos (Resnet-CNN y Panorama-CNN en sus dos variantes) se ha realizado una normalización y estandarización previa de las imágenes de entrada. Esto es que se han normalizado las imágenes de entrada para que queden en el intervalo $[0,1]$ y se han estandarizado para que todo el conjunto tenga media 0 y derivación estándar 1 (en función de los datos de entrenamiento). Además las imágenes se han escalado al 20\% de su tamaño. Las imágenes RGB se han escalado para obtener unas dimensiones de 36x108 y los mapas de características se han escalado a 108x108.\\
+
+El conjunto de datos se ha separado en un conjunto de train y test en una proporción de 90\% y 10\% respectivamente. Además el conjunto de train se ha dividido en dos conjuntos, uno de entrenamiento (train) y otro de validación en una proporción de 75\% y 25\% (ver Figura \ref{fig:data_split}). Estos conjuntos se han obtenido separando los modelos en parejas de forma que para una muestra, tanto su lado izquierdo como derecho permanecen juntos en el mismo conjunto. Esto es así para no introducir ningún tipo de información en test proveniente del conjunto de train y porque en el caso de aplicación a nuevos datos reales, las sínfisis púbicas siempre van en parejas, por lo que no tendría sentido separarlas. Podemos ver la distribución de densidad resultante después de realizar la división de los datos en la Figura \ref{fig:histograma_sets}.\\
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{imagenes/data_split.png}
+    \caption[Esquema de la división del conjunto de datos.]{Esquema de la división del conjunto de datos (dataset) en los conjuntos de entrenamiento (train), validación (validation) y prueba (test)}
+    \label{fig:data_split}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{imagenes/Histograma Train-Val-Test.pdf}
+    \caption{Histograma de la edad de las muestras de sínfisis púbicas divididas en conjuntos de train, validation y test.}
+    \label{fig:histograma_sets}
+\end{figure}
+
+Para obtener resultados fiables se han realizado 5 entrenamientos distintos para cada modelo.
+Para la red Resnet-CNN el proceso de entrenamiento se ha divido en dos. Una etapa de transferencia de conocimiento y otra de ajuste fino. En la primera fase, se bloquean todas las capas de la red ResNet, por lo que solo se actualizan los pesos de las capas del bloque de regresión. Esto se hace para que el modelo no destruya el conocimiento previo de la red y se aprenda a estimar la edad a partir de las características obtenidas por ResNet entrenada con Imagenet.
+Una vez completado este proceso, se realiza un \say{fine tuning} o ajuste fino. Este proceso consiste en desbloquear todas las capas del modelo y entrenar el mismo de forma completa, reduciendo la tasa de aprendizaje para ajustar la extracción de características al nuevo conjunto de datos. De esta manera, el modelo comienza el entrenamiento desde un punto mucho más favorable y converge a mejores resultados, ya que parte de una red que ya fue previamente entrenada. Esta estrategia de aplicar transferencia de conocimiento y ajuste fino en el proceso de entrenamiento de modelos de ML es muy utilizada \cite{team}.
+
+% \newpage
+
+\subsection{Evolución del entrenamiento de los modelos}
+
+En esta sección veremos las gráficas que muestran el entrenamiento de los modelos Resnet-CNN y Panorama-CNN. Veremos primero el entrenamiento de Resnet-CNN.
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.75\textwidth]{imagenes/Evolución del MAE en Train Resnet TL.pdf}
+    \caption[Evolución del MAE en el conjunto de entrenamiento en Resnet-CNN durante transfer learning.]{Evolución del MAE en el proceso de entrenamiento del conjunto de entrenamiento en Resnet-CNN durante la etapa de transfer learning.}
+    \label{fig:maetrainresnettl}
+\end{figure}
+
+Vemos en la Figura \ref{fig:maetrainresnettl} la evolución del MAE en el conjunto de train en la etapa de transferencia de conocimiento. Podemos ver como en el conjunto de las 5 ejecuciones el modelo apenas converge a un valor de MAE inferior a 10,5.
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.75\textwidth]{imagenes/Evolución del MAE en Validacion Resnet TL.pdf}
+    \caption[Evolución del MAE en el conjunto de validación en Resnet-CNN durante transfer learning.]{Evolución del MAE en el proceso de entrenamiento del conjunto de validación en Resnet-CNN durante la etapa de transfer learning.}
+    \label{fig:maevalresnettl}
+\end{figure}
+
+\newpage
+
+En la Figura \ref{fig:maevalresnettl} vemos como este comportamiento se repite en el conjunto de validación. En las gráficas del conjunto de validación se muestran en color oscuro los mínimos obtenidos (el mejor modelo hasta el momento) y en color claro el valor del MAE por épocas.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.75\textwidth]{imagenes/Evolución del MAE en Train Resnet FT.pdf}
+    \caption[Evolución del MAE en el conjunto de entrenamiento en Resnet-CNN durante fine tuning.]{Evolución del MAE en el proceso de entrenamiento del conjunto de entrenamiento en Resnet-CNN durante la etapa de fine tuning.}
+    \label{fig:maetrainresnetft}
+\end{figure}
+
+Sin embargo, en la Figura \ref{fig:maetrainresnetft} se puede apreciar como en la etapa de ajuste fino, el modelo converge a valores cercanos a 3. Esto es señal de que el modelo esta aprendiendo correctamente.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.75\textwidth]{imagenes/Evolución del MAE en Validacion Resnet FT.pdf}
+    \caption[Evolución del MAE en el conjunto de validación en Resnet-CNN durante fine tuning.]{Evolución del MAE en el proceso de entrenamiento del conjunto de validación en Resnet-CNN durante la etapa de fine tuning.}
+    \label{fig:maevalresnetft}
+\end{figure}
+
+En la Figura \ref{fig:maevalresnetft} vemos como ahora el MAE para el conjunto de validación converge de forma lenta, pero continua, alcanzando valores entre 8 y 10.
+
+Ahora veremos el progreso del entrenamiento del modelo Panorama-CNN tanto para imágenes RGB como para mapas de características.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.75\textwidth]{imagenes/Evolución del MAE en Train PanoRGB.pdf}
+    \caption[Evolución del MAE en el conjunto de entrenamiento en Panorama-CNN con imágenes RGB.]{Evolución del MAE en el proceso de entrenamiento del conjunto de entrenamiento en Panorama-CNN con imágenes RGB.}
+    \label{fig:maetrainpanorgb}
+\end{figure}
+
+En la Figura \ref{fig:maetrainpanorgb} vemos como el modelo converge correctamente a valores de MAE menores que 5 para en conjunto de train formado por imágenes RGB.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.75\textwidth]{imagenes/Evolución del MAE en Validación PanoRGB.pdf}
+    \caption[Evolución del MAE en el conjunto de validación en Panorama-CNN con imágenes RGB.]{Evolución del MAE en el proceso de entrenamiento del conjunto de validación en Panorama-CNN con imágenes RGB.}
+    \label{fig:maevalpanorgb}
+\end{figure}
+
+En la Figura \ref{fig:maevalpanorgb} vemos como el modelo también converge para conjunto de validación. En las gráficas de color claro pueden apreciarse picos máximos de MAE. Es por la presencia de estos picos que se aplica el sistema de checkpoints que guarda el mejor modelo encontrado hasta el momento. Si fuera de otro modo, de una época a la siguiente podríamos perder todo el proceso de convergencia conseguido.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.75\textwidth]{imagenes/Evolución del MAE en Train PanoGray.pdf}
+    \caption[Evolución del MAE en el conjunto de entrenamiento en Panorama-CNN con mapas de características.]{Evolución del MAE en el proceso de entrenamiento del conjunto de entrenamiento en Panorama-CNN con mapas de características.}
+    \label{fig:maetrainpanogray}
+\end{figure}
+
+En la Figura \ref{fig:maetrainpanogray} vemos como el modelo Panorama-CNN para mapas de características también converge a valores de MAE por debajo de 5 en cuatro de sus ejecuciones. Dado que los modelos de CNN son modelos estocásticos, podemos atribuir este fenómeno a que esa iteración en concreto no ha podido converger a un mejor valor, ya que las otras cuatro iteraciones corroboran que el modelo es capaz de extraer información de las imágenes y aprender de ella de forma correcta.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.75\textwidth]{imagenes/Evolución del MAE en Validación PanoGray.pdf}
+    \caption[Evolución del MAE en el conjunto de validación en Panorama-CNN con mapas de características.]{Evolución del MAE en el proceso de entrenamiento del conjunto de validación en Panorama-CNN con mapas de características.}
+    \label{fig:maevalpanogray}
+\end{figure}
+
+Finalmente vemos en la Figura \ref{fig:maevalpanogray} el proceso de convergencia de Panorama-CNN en el conjunto de validación de mapas de características.
+\newpage
+
+\section{Resultados}
+
+Una vez vista la evolución del entrenamiento de los modelos Resnet-CNN y Panorama-CNN, en esta sección se presentan los resultados finales obtenidos para el problema de estimación de la edad a partir de modelos 3D de sínfisis púbicas.\\
+
+Es importante comentar que los modelos se han probado para dos versiones del conjunto de test. Generalmente, en problemas de ML donde se hace uso de alguna técnica de aumento de datos, esta nunca se aplica en el conjunto de test. Sin embargo, la técnica de aumento de datos utilizada en este proyecto no introduce nueva información en el conjunto de test. Los modelos 3D que se incluyen en este conjunto son distintos a los incluidos en train, por lo que podemos decir que son \say{nuevos} para los modelos entrenados. Dado que solo estamos generando vistas adicionales de los modelos 3D, es de interés comprobar la eficacia de los modelos en un conjunto de test más amplio. De esta forma se podrá constatar de mejor manera la eficacia del modelo entrenado. Aún así, se incluyen ambos enfoques para no perder de vista que nos encontramos ante un problema de ML.
+
+\input{capitulos/resultados/totales}
+
+\newpage
+
+\input{capitulos/resultados/rangos_3}
+
+\input{capitulos/resultados/rangos_Todd}
+
+\newpage
+~\newpage
+
+\section{Análisis de los resultados}
+Una vez presentados los resultados, es el momento de realizar un análisis de los mismos. Como podemos ver en la Tabla \ref{tab:total_c} el modelo que alcanza mejores resultados es Resnet-CNN con un MAE de 8,33 y RMSE de 11,18 para el conjunto de test con aumento de datos. Le siguen Panorama-CNN para imágenes RGB con un MAE de 9,16 y RMSE de 11,70 y finalmente Panorama-CNN para mapas de características con un MAE de 9,61 y RMSE de 12,38. Si vemos estos resultados desglosados por rango niños/adultos/ancianos (Tabla \ref{tab:r3_c_total}), vemos cómo el mejor ajuste se realiza para el grupo de adultos. Esto tiene sentido ya que, al fin y al cabo, este rango posee el mayor número de muestras. Destacan los buenos resultados obtenidos en el grupo de niños: que pese a ser menos numeroso, los modelos Resnet-CNN y Panorama-CNN obtienen un error de entre 9 y 12 años. Desgraciadamente el ajuste es bastante deficiente para el grupo de los ancianos, obteniéndose un error de entre 28 y 35 años para el conjunto de test con aumento de datos. Si nos centramos en los resultados divididos según los rangos de edad propuestos por Todd (Tabla \ref{tab:rtodd_c_total}), vemos como el mejor ajuste se obtiene en las fases 4 a la 9. Esto de nuevo tiene sentido ya que estas fases cuentan con el mayor número de muestras. Sin embargo en base a esta división podemos ver como para las fases 2 y 3 pese a ser también bastante numerosas, no se consigue un ajuste tan bueno, aunque este se mantiene en valores de 9 - 10 años de MAE.\\
+
+Centrándonos ahora en los resultados obtenidos para el conjunto de test sin aumento de datos, en general puede notarse como estos son ligeramente peores que los resultados para el mismo conjunto con aumento de datos. Esto de nuevo tiene sentido. En el conjunto de test con aumento de datos, el modelo está clasificando 20 veces la misma muestra, por lo que puede cometer algún error en una proyección y compensarlo con la estimación de otra. Sin embargo, en el conjunto sin aumento de datos, los modelos se evalúan una sola vez, eliminado la posibilidad de que un error se compense. Un ejemplo de esta compensación lo vemos en las Tablas \ref{tab:total_c} y \ref{tab:total_s} en los resultados de Panorama-CNN. Los resultados para el conjunto ampliado empeoran en el caso de las imágenes RGB y mejoran en el caso de los mapas de características. Vemos en la Tabla \ref{tab:total_s} como el mejor modelo sigue siendo Resnet-CNN con un MAE de 8,55 y RMSE de 11,89. Aunque esto es en base al MAE medio, si nos fijamos en el RMSE medio, el mejor modelo es Panorama-CNN para imágenes RGB. Dado que las métricas mostradas son una media entre las 5 ejecuciones realizadas y observando también que la derivación estándar de ambos modelos es muy baja, podemos concluir que realmente ambos modelos están a la par en cuanto a resultados para el conjunto de test sin aumentar. Para los resultados divididos por rangos (Tablas \ref{tab:r3_s_total} y \ref{tab:rtodd_s_total}), observamos la misma tendencia descrita en los resultados para el conjunto de test con aumento de datos.\\
+
+De estos resultados extraemos además de las dos propuestas de representación presentadas en este proyecto (imágenes RGB y mapas de características), la mejor ha sido la propuesta de imágenes RGB (utilizada por ambas propuestas).
+
+\section{Comparación con el estado del arte}
+
+Finalmente, veamos cómo son los resultados en comparación con el estado del arte. En la Tabla \ref{tab:statevsres} vemos una comparativa entre los resultados obtenidos por los modelos Resnet-CNN y Panorama-CNN, y los resultados presentes en el estado del arte. Esta tabla esta estructurada diferenciando los métodos que realizan una estimación de la edad en fases o intervalos de edad (PB) y métodos que estiman un valor numérico para la edad de la muerte (N). Además se añade un nivel más de segmentación de los resultados, diferenciando entre métodos basados en componentes (CS) y métodos globales (G). Cada método de los presentes en el estado del arte cuenta con un enfoque y diseño experimental distinto, por lo que la comparativa que se muestra es aproximada.
+
+% % Please add the following required packages to your document preamble:
+% % \usepackage{graphicx}
+% \begin{table}[ht]
+% \centering
+% \resizebox{\textwidth}{!}{%
+% \begin{tabular}{|l|r|r|r|r|}
+% \hline
+% \textbf{Método} & \textbf{N muestras} & \textbf{Rango de edad} & \textbf{RMSE} & \textbf{MAE} \\ \hline
+% Slice y Algee-Hewitt \cite{slice2015modeling} & 41 & 19 - 96 & 17,15 & - \\ \hline
+% Stoyanova et al. \cite{stoyanova2015enhanced} & 56 (44 reales + 12 moldes) & 16 - 100 & 19 & - \\ \hline
+% Stoyanova et al. \cite{stoyanova2017computational} & 93 (68 reales + 25 moldes) & 16 - 90 & 13,7 - 16,5 & - \\ \hline
+% Koterova et al. \cite{kotverova2018age} & 941 & 19 - 100 & 12,1 & 9,7 \\ \hline
+% Resnet-CNN & 2200 & 15 - 82 & 11,18 & \textbf{8,33} \\ \hline
+% Resnet-CNN & 110 & 15 - 82 & 11,89 & 8,55 \\ \hline
+% Panorama-CNN (RGB) & 2200 & 15 - 82 & 11,70 & 9,16 \\ \hline
+% Panorama-CNN (RGB) & 100 & 15 - 82 & \textbf{11,09} & 8,72 \\ \hline
+% Panorama-CNN (Mapa) & 2200 & 15 - 82 & 12,38 & 9,61 \\ \hline
+% Panorama-CNN (Mapa) & 110 & 15 - 82 & 15,32 & 13,03 \\ \hline
+% \end{tabular}%
+% }
+% \caption{Comparación entre los resultados obtenidos y los resultados del estado del arte.}
+% \label{tab:statevsres}
+% \end{table}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{graphicx}
+\begin{table}[ht!]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcccc}
+\hline
+\multicolumn{1}{|l|}{\textbf{Método}} & \multicolumn{1}{l|}{\textbf{Tipo}} & \multicolumn{1}{c|}{\textbf{N muestras}} & \multicolumn{1}{c|}{\textbf{Rango de edad}} & \multicolumn{1}{c|}{\textbf{RMSE}} & \multicolumn{1}{c|}{\textbf{MAE}} \\ \hline
+\multicolumn{1}{|l|}{Slice y Algee-Hewitt \cite{slice2015modeling}} & \multicolumn{1}{l|}{N, CS} & \multicolumn{1}{c|}{41} & \multicolumn{1}{c|}{19 - 96} & \multicolumn{1}{c|}{17,15} & \multicolumn{1}{c|}{-} \\ \hline
+\multicolumn{1}{|l|}{Stoyanova et al. \cite{stoyanova2015enhanced}} & \multicolumn{1}{l|}{N, CS} & \multicolumn{1}{c|}{56} & \multicolumn{1}{c|}{16 - 100} & \multicolumn{1}{c|}{19} & \multicolumn{1}{c|}{-} \\ \hline
+\multicolumn{1}{|l|}{Stoyanova et al. \cite{stoyanova2017computational}} & \multicolumn{1}{l|}{N, CS} & \multicolumn{1}{c|}{93} & \multicolumn{1}{c|}{16 - 90} & \multicolumn{1}{c|}{13,7 - 16,5} & \multicolumn{1}{c|}{-} \\ \hline
+\multicolumn{1}{|l|}{Koterova et al. \cite{kotverova2018age}} & \multicolumn{1}{l|}{N, CS} & \multicolumn{1}{c|}{941} & \multicolumn{1}{c|}{19 - 100} & \multicolumn{1}{c|}{12,1} & \multicolumn{1}{c|}{9,7} \\ \hline
+\multicolumn{1}{|l|}{Gámez-Granados et al. \cite{gámez_irurita_gonzález_damas_alemán_cordón_2021}} & \multicolumn{1}{l|}{PB, G} & \multicolumn{1}{c|}{892} & \multicolumn{1}{c|}{18 - 60} & \multicolumn{1}{c|}{13,19} & \multicolumn{1}{c|}{10,38} \\ \hline
+\multicolumn{1}{|l|}{Gámez-Granados et al. \cite{gámez_irurita_gonzález_damas_alemán_cordón_2021}} & \multicolumn{1}{l|}{PB, G} & \multicolumn{1}{c|}{960} & \multicolumn{1}{c|}{18 - 60} & \multicolumn{1}{c|}{14,61} & \multicolumn{1}{c|}{11,62} \\ \hline
+\multicolumn{1}{|l|}{Bermejo et al \cite{villegas_TFG} (GP)} & \multicolumn{1}{l|}{N, CS} & \multicolumn{1}{c|}{1152} & \multicolumn{1}{c|}{18-82} & \multicolumn{1}{c|}{10,82} & \multicolumn{1}{c|}{8,56} \\ \hline
+\multicolumn{1}{|l|}{Bermejo et al \cite{villegas_TFG} (GA-P)} & \multicolumn{1}{l|}{N, CS} & \multicolumn{1}{c|}{1152} & \multicolumn{1}{c|}{18-82} & \multicolumn{1}{c|}{\textbf{10,81}} & \multicolumn{1}{c|}{\textbf{8,55}} \\ \hline
+ &  & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} \\ \hline
+\multicolumn{1}{|l|}{Resnet-CNN (Aumento)} & \multicolumn{1}{l|}{N, G} & \multicolumn{1}{c|}{1104} & \multicolumn{1}{c|}{15 - 82} & \multicolumn{1}{c|}{\textbf{11,18}} & \multicolumn{1}{c|}{\textbf{8,33}} \\ \hline
+\multicolumn{1}{|l|}{Resnet-CNN} & \multicolumn{1}{l|}{N, G} & \multicolumn{1}{c|}{1104} & \multicolumn{1}{c|}{15 - 82} & \multicolumn{1}{c|}{11,89} & \multicolumn{1}{c|}{\textbf{8,55}} \\ \hline
+\multicolumn{1}{|l|}{Panorama-CNN (RGB) (Aumento)} & \multicolumn{1}{l|}{N, G} & \multicolumn{1}{c|}{1104} & \multicolumn{1}{c|}{15 - 82} & \multicolumn{1}{c|}{11,7} & \multicolumn{1}{c|}{9,16} \\ \hline
+\multicolumn{1}{|l|}{Panorama-CNN (RGB)} & \multicolumn{1}{l|}{N, G} & \multicolumn{1}{c|}{1104} & \multicolumn{1}{c|}{15 - 82} & \multicolumn{1}{c|}{\textbf{11,09}} & \multicolumn{1}{c|}{8,72} \\ \hline
+\multicolumn{1}{|l|}{Panorama-CNN (Mapas) (Aumento)} & \multicolumn{1}{l|}{N, G} & \multicolumn{1}{c|}{1104} & \multicolumn{1}{c|}{15 - 82} & \multicolumn{1}{c|}{12,38} & \multicolumn{1}{c|}{9,61} \\ \hline
+\multicolumn{1}{|l|}{Panorama-CNN (Mapas)} & \multicolumn{1}{l|}{N, G} & \multicolumn{1}{c|}{1104} & \multicolumn{1}{c|}{15 - 82} & \multicolumn{1}{c|}{15,32} & \multicolumn{1}{c|}{13,03} \\ \hline
+\end{tabular}%
+}
+\caption[Comparación entre los resultados obtenidos y los resultados del estado del arte.]{Comparación entre los resultados obtenidos y los resultados del estado del arte. \textbf{Tipo}: PB, basado en fases; N, numérico; CS, basado en componentes. \textbf{MAE} y \textbf{RMSE} indican el error medido en años.}
+\label{tab:statevsres}
+\end{table}
+
+% Vemos que los resultados obtenidos por los modelos Resnet-CNN y Panorama-CNN son muy competitivos puesto que igualan a los mejores resultados presentes en el estado del arte. 
+
+Nuestro modelo se enmarca dentro de la categoría de métodos numéricos, ya que estimamos directamente un valor numérico para la edad de la muerte a partir de las características morfológicas globales extraídas automáticamente a partir de los modelos 3D. Comparándolo con otros métodos de estimación numéricos, vemos cómo nuestro modelo iguala a los mejores resultados del estado del arte, los aportados por Bermejo et al \cite{villegas_TFG}. Nuestra mejor estimación obtenida por los modelos de Resnet-CNN y Panorama-CNN es de un MAE de 8,33 y un RMSE de 11,18 para el conjunto de test aumentado y un MAE de 8,55 y un RMSE de 11,09 para el conjunto de test sin aumento, mientras que \cite{villegas_TFG} aportan en su mejor resultado un MAE de 8,55 y un RMSE de 10,81. Cabe recalcar las diferencias fundamentales de ambos modelos, pues en la propuesta de \cite{villegas_TFG} plantean un modelo de apoyo al antropólogo forense que depende de la extracción subjetiva de características de un experto, mientras que nuestro modelo extrae estas características a partir de los modelos 3D de forma automática. Esto nos sugiere la posibilidad que las características aprendidas por nuestro modelo son, al menos, tan buenas como las utilizadas actualmente por los antropólogos forenses. Comparando nuestro método con métodos basados en fases del estado del arte, vemos como mejoramos los mejores resultados aportados por \cite{gámez_irurita_gonzález_damas_alemán_cordón_2021} con un RMSE de 14,61 y un MAE de 11,68. Por tanto vemos como nuestra propuesta queda enmarcada a la altura de otros métodos del estado del arte y que presenta unos resultados de estimación muy competitivos, comparables a los métodos que cuentan con la intervención de un experto antropólogo forense.

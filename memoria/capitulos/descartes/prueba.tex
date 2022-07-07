@@ -1,0 +1,198 @@
+\documentclass[xcolor=table]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+
+\usepackage{multirow}
+\usepackage[table,xcdraw]{xcolor}
+
+\usepackage{graphicx}
+
+\usepackage{csquotes}
+\usepackage{dirtytalk}
+
+\usepackage[
+backend=biber,
+%style=alphabetic,
+sorting=ynt
+]{biblatex} %Imports biblatex package
+
+\renewcommand*{\labelalphaothers}{} % Elimina el + en las referencias
+
+\addbibresource{bibliografia.bib} %Import the bibliography file
+
+\title{Prueba de capitulo}
+\author{Alejandro Manzanares Lemus}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\newpage
+
+\input{capitulos/introduccion}
+\input{capitulos/stateofart}
+\input{capitulos/fundamentos}
+\input{capitulos/metodos}
+\input{capitulos/experimentos}
+\input{capitulos/conclusiones}
+
+\section{Resultados}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+% \usepackage{graphicx}
+\begin{table}[]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|c|c|c|l|l|l|l|l|l|}
+\hline
+\textbf{Red} & \textbf{Datos} & \textbf{Rango} & \multicolumn{1}{c|}{\textbf{N muestras}} & \multicolumn{1}{c|}{\textbf{MAE Ej. 1}} & \multicolumn{1}{c|}{\textbf{MAE Ej. 2}} & \multicolumn{1}{c|}{\textbf{MAE Ej. 3}} & \multicolumn{1}{c|}{\textbf{MAE Ej. 4}} & \multicolumn{1}{c|}{\textbf{MAE Ej. 5}} \\ \hline
+\multirow{11}{*}{RESNET} & \multirow{11}{*}{Imagenes RGB} & Total &  &  &  &  &  &  \\
+ &  & 0 - 19 &  &  &  &  &  &  \\
+ &  & 20 - 21 &  &  &  &  &  &  \\
+ &  & 22 - 24 &  &  &  &  &  &  \\
+ &  & 25 - 26 &  &  &  &  &  &  \\
+ &  & 27 - 30 &  &  &  &  &  &  \\
+ &  & 31 - 34 &  &  &  &  &  &  \\
+ &  & 35 - 39 &  &  &  &  &  &  \\
+ &  & 40 - 44 &  &  &  &  &  &  \\
+ &  & 45 - 49 &  &  &  &  &  &  \\
+ &  & 50 - 90 &  &  &  &  &  &  \\ \hline
+\multirow{11}{*}{PANORAMA-CNN} & \multirow{11}{*}{Imagenes RGB} & Total &  &  &  &  &  &  \\
+ &  & 0 - 19 &  &  &  &  &  &  \\
+ &  & 20 - 21 &  &  &  &  &  &  \\
+ &  & 22 - 24 &  &  &  &  &  &  \\
+ &  & 25 - 26 &  &  &  &  &  &  \\
+ &  & 27 - 30 &  &  &  &  &  &  \\
+ &  & 31 - 34 &  &  &  &  &  &  \\
+ &  & 35 - 39 &  &  &  &  &  &  \\
+ &  & 40 - 44 &  &  &  &  &  &  \\
+ &  & 45 - 49 &  &  &  &  &  &  \\
+ &  & 50 - 90 &  &  &  &  &  &  \\ \hline
+\multirow{11}{*}{PANORAMA-CNN} & \multirow{11}{*}{Mapas de caracteristicas} & Total &  &  &  &  &  &  \\
+ &  & 0 - 19 &  &  &  &  &  &  \\
+ &  & 20 - 21 &  &  &  &  &  &  \\
+ &  & 22 - 24 &  &  &  &  &  &  \\
+ &  & 25 - 26 &  &  &  &  &  &  \\
+ &  & 27 - 30 &  &  &  &  &  &  \\
+ &  & 31 - 34 &  &  &  &  &  &  \\
+ &  & 35 - 39 &  &  &  &  &  &  \\
+ &  & 40 - 44 &  &  &  &  &  &  \\
+ &  & 45 - 49 &  &  &  &  &  &  \\
+ &  & 50 - 90 &  &  &  &  &  &  \\ \hline
+\end{tabular}%
+}
+\caption{}
+\label{tab:my-table}
+\end{table}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+% \usepackage{graphicx}
+\begin{table}[]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|c|c|c|l|l|l|l|}
+\hline
+\textbf{Red} & \textbf{Datos} & \textbf{Rango} & \multicolumn{1}{c|}{\textbf{N muestras}} & \multicolumn{1}{c|}{\textbf{MAE medio}} & \multicolumn{1}{c|}{\textbf{MAE std}} & \multicolumn{1}{c|}{\textbf{MAE min}} \\ \hline
+\multirow{11}{*}{RESNET} & \multirow{11}{*}{Imagenes RGB} & Total &  &  &  &  \\
+ &  & 0 - 19 &  &  &  &  \\
+ &  & 20 - 21 &  &  &  &  \\
+ &  & 22 - 24 &  &  &  &  \\
+ &  & 25 - 26 &  &  &  &  \\
+ &  & 27 - 30 &  &  &  &  \\
+ &  & 31 - 34 &  &  &  &  \\
+ &  & 35 - 39 &  &  &  &  \\
+ &  & 40 - 44 &  &  &  &  \\
+ &  & 45 - 49 &  &  &  &  \\
+ &  & 50 - 90 &  &  &  &  \\ \hline
+\multirow{11}{*}{PANORAMA-CNN} & \multirow{11}{*}{Imagenes RGB} & Total &  &  &  &  \\
+ &  & 0 - 19 &  &  &  &  \\
+ &  & 20 - 21 &  &  &  &  \\
+ &  & 22 - 24 &  &  &  &  \\
+ &  & 25 - 26 &  &  &  &  \\
+ &  & 27 - 30 &  &  &  &  \\
+ &  & 31 - 34 &  &  &  &  \\
+ &  & 35 - 39 &  &  &  &  \\
+ &  & 40 - 44 &  &  &  &  \\
+ &  & 45 - 49 &  &  &  &  \\
+ &  & 50 - 90 &  &  &  &  \\ \hline
+\multirow{11}{*}{PANORAMA-CNN} & \multirow{11}{*}{Mapas de caracteristicas} & Total &  &  &  &  \\
+ &  & 0 - 19 &  &  &  &  \\
+ &  & 20 - 21 &  &  &  &  \\
+ &  & 22 - 24 &  &  &  &  \\
+ &  & 25 - 26 &  &  &  &  \\
+ &  & 27 - 30 &  &  &  &  \\
+ &  & 31 - 34 &  &  &  &  \\
+ &  & 35 - 39 &  &  &  &  \\
+ &  & 40 - 44 &  &  &  &  \\
+ &  & 45 - 49 &  &  &  &  \\
+ &  & 50 - 90 &  &  &  &  \\ \hline
+\end{tabular}%
+}
+\caption{}
+\label{tab:my-table}
+\end{table}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+% \usepackage{graphicx}
+\begin{table}[]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|c|c|c|l|l|l|l|l|l|}
+\hline
+\textbf{Red} & \textbf{Datos} & \textbf{Rango} & \multicolumn{1}{c|}{\textbf{N muestras}} & \multicolumn{1}{c|}{\textbf{MAE Ej. 1}} & \multicolumn{1}{c|}{\textbf{MAE Ej. 2}} & \multicolumn{1}{c|}{\textbf{MAE Ej. 3}} & \multicolumn{1}{c|}{\textbf{MAE Ej. 4}} & \multicolumn{1}{c|}{\textbf{MAE Ej. 5}} \\ \hline
+\multirow{4}{*}{RESNET} & \multirow{4}{*}{Imagenes RGB} & Total &  &  &  &  &  &  \\
+ &  & 15 - 18 &  &  &  &  &  &  \\
+ &  & 19 - 64 &  &  &  &  &  &  \\
+ &  & 65 - 90 &  &  &  &  &  &  \\ \hline
+\multirow{4}{*}{PANORAMA-CNN} & \multirow{4}{*}{Imagenes RGB} & Total &  &  &  &  &  &  \\
+ &  & 15 - 18 &  &  &  &  &  &  \\
+ &  & 19 - 64 &  &  &  &  &  &  \\
+ &  & 65 - 90 &  &  &  &  &  &  \\ \hline
+\multirow{4}{*}{PANORAMA-CNN} & \multirow{4}{*}{Mapas de caracteristicas} & Total &  &  &  &  &  &  \\
+ &  & 15 - 18 &  &  &  &  &  &  \\
+ &  & 19 - 64 &  &  &  &  &  &  \\
+ &  & 65 - 90 &  &  &  &  &  &  \\ \hline
+\end{tabular}%
+}
+\caption{}
+\label{tab:my-table}
+\end{table}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+% \usepackage{graphicx}
+\begin{table}[]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|c|c|c|l|l|l|l|}
+\hline
+\textbf{Red} & \textbf{Datos} & \textbf{Rango} & \multicolumn{1}{c|}{\textbf{N muestras}} & \multicolumn{1}{c|}{\textbf{MAE medio}} & \multicolumn{1}{c|}{\textbf{MAE std}} & \multicolumn{1}{c|}{\textbf{MAE min}} \\ \hline
+\multirow{4}{*}{RESNET} & \multirow{4}{*}{Imagenes RGB} & Total &  &  &  &  \\
+ &  & 15 - 18 &  &  &  &  \\
+ &  & 19 - 64 &  &  &  &  \\
+ &  & 65 - 90 &  &  &  &  \\ \hline
+\multirow{4}{*}{PANORAMA-CNN} & \multirow{4}{*}{Imagenes RGB} & Total &  &  &  &  \\
+ &  & 15 - 18 &  &  &  &  \\
+ &  & 19 - 64 &  &  &  &  \\
+ &  & 65 - 90 &  &  &  &  \\ \hline
+\multirow{4}{*}{PANORAMA-CNN} & \multirow{4}{*}{Mapas de caracteristicas} & Total &  &  &  &  \\
+ &  & 15 - 18 &  &  &  &  \\
+ &  & 19 - 64 &  &  &  &  \\
+ &  & 65 - 90 &  &  &  &  \\ \hline
+\end{tabular}%
+}
+\caption{}
+\label{tab:my-table}
+\end{table}
+
+\newpage
+
+\printbibliography
+
+\end{document}

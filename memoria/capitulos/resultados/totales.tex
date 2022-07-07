@@ -1,0 +1,45 @@
+\subsection{Resultados totales}
+
+% \subsubsection{Conjunto de test con aumento de datos}
+% \usepackage{graphicx}
+
+
+\begin{table}[ht]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{|l|l|c|c|c|c|c|c|c|} 
+\hline
+\multicolumn{1}{|c|}{\textbf{Red}} & \multicolumn{1}{c|}{Datos} & N muestras & \begin{tabular}[c]{@{}c@{}}MAE\\ avg\end{tabular} & \begin{tabular}[c]{@{}c@{}}MAE\\ std\end{tabular} & \begin{tabular}[c]{@{}c@{}}MAE\\ min\end{tabular} & \begin{tabular}[c]{@{}c@{}}RMSE\\ avg\end{tabular} & \begin{tabular}[c]{@{}c@{}}RMSE\\ std\end{tabular} & \begin{tabular}[c]{@{}c@{}}RMSE\\ min\end{tabular} \\ \hline 
+Resnet-CNN & RGB & 2200 & \textbf{8,33} & 0,64 & 7,92 & \textbf{11,18} & 0,69 & 10,73 \\ 
+\cline{1-2}
+Panorama-CNN & RGB & 2200 & 9,16 & 0,36 & 8,75 & 11,70 & 0,51 & 11,15 \\ 
+\cline{1-2}
+Panorama-CNN & FM & 2200 & 9,61 & 0,94 & 8,76 & 12,38 & 1,00 & 11,38 \\
+\hline
+\end{tabular}
+}
+\caption[Resultados RMSE y MAE totales para un conjunto de test con aumento de datos.]{Resultados RMSE y MAE totales para un conjunto de test con aumento de datos. \textbf{Datos}: RBG, imágenes RGB; FM, mapas de características.}
+\label{tab:total_c}
+\end{table}
+
+% \subsubsection{Conjunto de test sin aumento de datos}
+
+% \usepackage{graphicx}
+
+\begin{table}[ht]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{|l|l|c|c|c|c|c|c|c|} 
+\hline
+\multicolumn{1}{|c|}{\textbf{Red}} & \multicolumn{1}{c|}{Datos} & N muestras & \begin{tabular}[c]{@{}c@{}}MAE\\ avg\end{tabular} & \begin{tabular}[c]{@{}c@{}}MAE\\ std\end{tabular} & \begin{tabular}[c]{@{}c@{}}MAE\\ min\end{tabular} & \begin{tabular}[c]{@{}c@{}}RMSE\\ avg\end{tabular} & \begin{tabular}[c]{@{}c@{}}RMSE\\ std\end{tabular} & \begin{tabular}[c]{@{}c@{}}RMSE\\ min\end{tabular} \\ \hline 
+Resnet-CNN & RGB & 110 & \textbf{8,55} & 0,86 & 7,95 & 11,89 & 0,92 & 11,10 \\ 
+\cline{1-2}
+Panorama-CNN & RGB & 110 & 8,72 & 0,44 & 8,18 & \textbf{11,09} & 0,44 & 10,70 \\ 
+\cline{1-2}
+Panorama-CNN & FM & 110 & 13,03 & 2,20 & 10,57 & 15,32 & 2,09 & 12,94 \\
+\hline
+\end{tabular}
+}
+\caption[Resultados RMSE y MAE totales para un conjunto de test sin aumento de datos.]{Resultados RMSE y MAE totales para un conjunto de test sin aumento de datos. \textbf{Datos}: RBG, imágenes RGB; FM, mapas de características.}
+\label{tab:total_s}
+\end{table}

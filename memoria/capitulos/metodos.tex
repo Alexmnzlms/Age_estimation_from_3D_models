@@ -1,0 +1,266 @@
+\chapter{Métodos propuestos}
+\label{chap:metodologia}
+
+% ** Dada la originalidad y novedad de tu TFG, yo remarcaría en el propio título del capítulo el hecho de que son métodos propuestos por ti. **
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Representación PANORAMA}
+
+Como vimos en la Tabla \ref{tab:state_of_art_proyecciones}, el mejor método presente en el estado del arte para la representación de modelos 3D mediante proyecciones es el propuesto por Sfikas et al. \cite{SFIKAS2018208}. Por esto, se ha elegido esta representación como forma de representación de datos 3D para el desarrollo de este proyecto.\\
+
+La representación PANORAMA presentada en 2010 en el articulo \textbf{PANORAMA: A 3D Shape Descriptor Based on Panoramic Views for Unsupervised 3D Object Retrieval} \cite{papadakis2010panorama} destaca como una de las representaciones 3D basadas en proyecciones que mejores resultados aporta en tareas de clasificación/reconocimiento  \cite{ahmed2018survey,sfikas2017exploiting,SFIKAS2018208}.\\
+
+% Además los investigadores responsables del desarrollo de PANORAMA desarrollaron también un método de normalización de la pose basado en esta misma representación \cite{sfikas2014pose}. Las proyecciones 3D son muy sensibles a la pose del modelo 3D, esto es, su orientación y posición en el espacio 3D. Un mismo modelo puede producir varias proyecciones 3D en función de su pose. Dado un conjunto de datos recogidos de forma manual, no todos los modelos tendrían porque posicionados de la misma manera, por lo que sería necesario normalizar la pose de los mismos de forma que sus representaciones en forma de proyección 3D fueran lo más uniformes posibles, evitando así la inclusión de ruido en los datos y el empeoramiento de la capacidad del modelo para extraer características de las representaciones 3D que permiten el aprendizaje. Sin embargo, este no es el caso de los modelos presentes en el conjunto aportado por el Departamento de Medicina Legal, Toxicología y Antropología Física, ya que estos se han escaneado siguiendo un protocolo concreto.\\
+
+No fue hasta el año 2017 que se presentó un articulo \cite{sfikas2017exploiting} en el que esta representación se utilizó como forma de representación de datos 3D para su posterior uso en CNN. En 2018 se publicó un articulo que expandió el planteamiento anterior \cite{SFIKAS2018208}. A continuación se detallará en que consiste la representación PANORAMA y su uso en el campo de las CNN.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Propuesta original de PANORAMA}
+\label{sec:panorama}
+% \begin{figure}[h]
+% \centering
+% \subfloat[El cilindro utilizado para adquirir la proyección de un modelo 3D]{
+% \includegraphics[width=0.4\textwidth]{imagenes/cylinder.png}
+% \label{fig:subfig1}}
+% \subfloat[La discretización de la superficie lateral del cilindro de proyección-
+% der (puntos en naranja) al conjunto de puntos $s(\phi_u, y_v)$]{
+% \includegraphics[width=0.4\textwidth]{imagenes/discrete_cylinder.png}
+% \label{fig:subfig2}}
+% \qquad
+% \caption{This is a figure containing several subfigures.}
+% \label{fig:globfig}
+% \end{figure}
+
+La representación PANORAMA esta formada por un conjunto de varias vistas panorámicas. Para obtener cada una de ellas, proyectamos el modelo en la superficie lateral de un cilindro de radio $R$ y altura $H = 2R$, centrado en el origen con uno de sus ejes paralelo a uno de los ejes de coordenadas (ver Figura \ref{fig:cilindro}).\\
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{imagenes/cylinder.png}
+    \caption[Cilindro utilizado para adquirir la proyección de un modelo 3D.]{Cilindro utilizado para adquirir la proyección de un modelo 3D \cite{papadakis2010panorama}.}
+    \label{fig:cilindro}
+\end{figure}
+
+\newpage
+
+Establecemos $R = 2 \cdot d_{max}$\footnote{La propuesta original establece $R = 3 \cdot d_{media}$ donde $d_{media}$ es la distancia media de la superficie del modelo hasta su centroide. Este valor se calcula originalmente aplicando un método de normalización de pose diferente, por lo que se han reflejado los cambios propuestos en \cite{sfikas2017exploiting}.}, siendo $d_{max}$ la distancia máxima de la superficie del modelo hasta su centroide.\\
+
+Una vez definido el cilindro que contendrá y sobre el que se proyectará el modelo 3D, es necesario parametrizar su superficie lateral haciendo uso del conjunto de puntos $s(\varphi_u, y_v)$ donde $\varphi \in [0,2\pi]$ es el ángulo en el plano xy, $y \in [0,H]$ y muestreamos las coordenadas $\varphi$ e $y$ a razón de $2B$ y $B$, respectivamente (fijamos $B = 180$)\footnote{La propuesta original fija $B=64$}. La dimensión de $\varphi$ se muestrea al doble de frecuencia para contabilizar la diferencia en longitud entre el perímetro de la superficie lateral del cilindro y su altura. Aunque el perímetro de esta superficie es $2\pi \approx 3$ veces la altura del cilindro, la frecuencia de muestreo se fija a $2B$ dado que se ha comprobado experimentalmente que produce el mejor resultado en términos de efectividad-eficiencia.\\
+
+En resumen, establecemos un conjunto de puntos $s(\varphi_u, y_v)$ donde $\varphi_u = u*2\pi / (2B)$, $u \in [0,2B-1]$ y $y_v = v \cdot H/B$, $v \in [0, B-1]$ (ver Figura \ref{fig:cilindro_discreto}). Una vez definido $s(\varphi_u, y_v)$, hay que calcular un valor para cada punto. Este cálculo se realiza de forma iterativa para $v = 0,1,...,B$ considerando un conjunto de puntos coplanares de $s$ para cada valor de $v$ (cada conjunto de puntos tiene origen en el centro del cilindro $c_v$, ver Figura \ref{fig:cilindro_top}).
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{imagenes/discrete_cylinder.png}
+    \caption[Discretización de la superficie lateral del cilindro de proyección.]{Discretización de la superficie lateral del cilindro de proyección (puntos en naranja) al conjunto de puntos $s(\varphi_u, y_v)$ \cite{papadakis2010panorama}.}
+    \label{fig:cilindro_discreto}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{imagenes/top_cylinder.png}
+    \caption[Sección transversal más alta del cilindro junto con los rayos correspondientes.]{Sección transversal más alta del cilindro junto con los rayos correspondientes que emanan del centro de la sección transversal $c_{B-1}$, \mbox{$(v = B-1)$} \cite{papadakis2010panorama}.}
+    \label{fig:cilindro_top}
+\end{figure}
+
+\newpage
+
+Las proyecciones cilíndricas capturan dos características de la superficie del modelo 3D:
+\begin{itemize}
+    \item La posición de la superficie del modelo en el espacio 3D. Nos referiremos a esta proyección como \textbf{Spatial Distribution Map} (\textbf{SDM}).
+    \item La orientación de la superficie del modelo. Nos referiremos a esta proyección como \textbf{Normals’ Deviation Map} (\textbf{NDM}).
+\end{itemize}
+
+Para capturar estas características se utilizan dos proyecciones cilíndricas distintas, que denotaremos como los conjuntos de puntos $s_1$ y $s_2$. Por defecto, el valor inicial de cada punto es 0. Estas proyecciones también puede verse como mapas de características.\\
+
+Para calcular la posición de la superficie del modelo 3D, para cada sección transversal a la altura $y_v$, calculamos la distancia desde $c_v$ hasta la intersección de la superficie del modelo con cada uno de los rayos $\varphi_u$ en cada dirección (ver Figura \ref{fig:cilindro_top}). Definamos $pos(\varphi_u,y_v)$ como la distancia de $c_v$ al punto más lejano consecuencia de la intersección del rayo con origen $c_v$ y dirección $\varphi_u$ con la superficie del modelo, por tanto:
+
+\begin{equation}
+    s_1(\varphi_u,y_u) = pos(\varphi_u,y_v)
+\end{equation}
+
+El valor de cada punto de $s_1$ pertenece al intervalo $[0,R]$.\\
+
+Para capturar la orientación de la superficie del modelo, para para cada sección transversal a la altura $y_v$, calculamos la intersección de la superficie del modelo con el rayo con origen $c_v$ y dirección $\varphi_u$. Una vez calculada la intersección, calculamos el ángulo entre el rayo y el vector normal del triangulo intersecado. Definimos $ang(\varphi_u,y_v)$ como el coseno del ángulo entre el rayo con origen $c_v$ y dirección $\varphi_u$ y el vector normal del triangulo al que pertenece el punto más lejano consecuencia de las intersección del rayo, por tanto:
+
+\begin{equation}
+    s_2(\varphi_u,y_u) = |cos(ang(\varphi_u,y_v))|^{n}
+\end{equation}
+
+Tomamos la potencia enésima de $|cos(ang(\varphi_u,y_v))|^{n}$ donde $n \ge 2$ debido a que así aumentamos el contraste de la proyección obtenida. Esto se ha demostrado experimentalmente como una mejora en la capacidad de discriminación de la superficie del modelo en la proyección. Los mejores resultados los aporta $n \in [4,6]$, aumentando el contraste de forma proporcional a n. Además calculamos el valor absoluto del coseno para no tener que prestar atención a la orientación de los triángulos en la superficie del modelo. No es necesario aumentar el contraste en los valores de $s_1$ ya que esta proyección produce valores menos discriminatorios \cite{papadakis2010panorama}.\\
+
+En la Figura \ref{fig:ejemploPANORAMA} se puede ver un ejemplo de las proyecciones que hemos definido previamente.\\
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{imagenes/ejemploPANORAMA.png}
+    \caption[Ejemplo de la representación propuesta.]{(\textbf{a}) Modelo 3D. (\textbf{b}) SDM, la proyección cilíndrica desplegada que captura la posición de la superficie modelo 3D. (\textbf{c}) NDM, la proyección cilíndrica desplegada que captura la orientación de la superficie modelo 3D\cite{papadakis2010panorama}.}
+    \label{fig:ejemploPANORAMA}
+\end{figure}
+
+Una de las limitaciones de estas representaciones, es que no son capaces de representar la concavidad de los modelos 3D. Para superar esta limitación, se calcula cada una de las proyecciones para un cilindro alineado con cada uno de los tres ejes de coordenadas X, Y y Z. Un ejemplo de esto puede verse en la Figura \ref{fig:ejemplo3PANORAMA}.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{imagenes/ejemplo3PANORAMA.png}
+    \caption[Limitaciones de la representación propuesta.]{(\textbf{a}) Modelo 3D de una taza. (\textbf{b})-(\textbf{d}) las correspondientes proyecciones cilíndricas $s_{1,t}(\varphi_u , y_v)$ utilizando tres cilindros alineados cada uno con los ejes de coordenadas X, Y y Z respectivamente\cite{papadakis2010panorama}.}
+    \label{fig:ejemplo3PANORAMA}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \input{capitulos/synpan}
+% \todo[Pregunta]{¿Si al final no aplico el algoritmo de normalización, pero si que lo tengo implementado, dejo esta sección?}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\subsection{Propuesta de adaptación}
+
+Una vez revisado el método de representación PANORAMA, veamos como puede aplicarse al campo de las redes neuronales convolucionales. Primero nos centraremos en describir las dos propuestas de aplicación de PANORAMA presentadas por el equipo desarrollador de la representación.\\
+
+Para poder entrenar una CNN utilizando la representación PANORAMA, en \cite{sfikas2017exploiting} se propone un esquema aumentado que se basa en las representaciones panorámicas producidas por cada eje de coordenadas. Por cada eje, se computa tanto las representaciones SDM como NDM del modelo 3D. Cada mapa de características se amplia añadiendo la mitad de la imagen al final de la misma. De esta forma evitamos que haya lagunas en la representación. En total se computan seis vistas panorámicas: NDM(X), NDM(Y), NDM(Z), SDM(X), SDM(Y) y SDM(Z). Estas seis vistas forman la entrada de la red neural convolucional. El tamaño total de las vistas del modelo 3D es $1,5 \cdot 360 = 540$ píxeles de ancho y $180 \cdot 6 = 1080$ píxeles de alto (ver Figura \ref{fig:panorama2017}).\\
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.55\textwidth]{imagenes/panorama2017.png}
+    \caption[Ejemplo de vista panorámica aumentada de un modelo 3D.]{Ejemplo de vista panorámica aumentada de un modelo 3D. El orden de las representaciones apiladas es el siguiente: NDM(X), NDM(Y), NDM(Z), SDM(X), SDM(Y) y SDM(Z) \cite{sfikas2017exploiting}.}
+    \label{fig:panorama2017}
+\end{figure}
+
+El segundo enfoque, presentado en \cite{SFIKAS2018208} es el siguiente. Se computan las representaciones SDM y NDM para cada uno de los ejes principales del modelo 3D. Además se computa el gradiente de la representación NDM. A esta nueva representación la llamaremos Gradient NDM (GNDM). De igual forma que en el enfoque anterior, la representación PANORAMA se extiende añadiendo la mitad de la imagen al final de la misma. Por cada modelo 3D, se obtiene un total de tres vistas panorámicas, una por cada eje de coordenadas. Cada vista, se apila en una imagen RGB de tres canales de información de la siguiente forma: NDM(X) – SDM(X) – GNDM(X), NDM(Y) – SDM(Y) – GNDM(Y), NDM(Z) – SDM(Z) – GNDM(Z). Estas tres imágenes forman la entrada de la CNN. El tamaño total de las vistas del modelo 3D es $1,5 \cdot 720 = 1080$ píxeles de ancho y $360 \cdot 3 = 1080$ píxeles de alto (ver Figura \ref{fig:panorama2018}).\\
+
+Vistas las propuestas originales, para el desarrollo de este proyecto se proponen dos representaciones distintas. La primera de ellas aplica directamente el enfoque presentado en \cite{SFIKAS2018208}. La entrada de la red neuronal convolucional serán tres imágenes RGB que codifican la información de cada uno de los mapas de características (SDM, NDM y GNDM) en un canal (ver Figura \ref{fig:panoramaXYZ}). La segunda utiliza un enfoque híbrido entre \cite{sfikas2017exploiting} y \cite{SFIKAS2018208}. Se generan tres imágenes distintas (de un solo canal), una por cada mapa de características. Cada una de las imágenes contiene la representación de los tres ejes concatenados de forma vertical (ver Figura \ref{fig:panoramaSDMNDMGNDM}).
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=\textwidth]{imagenes/panorama2018.png}
+    \caption[Ejemplo de imagen RGB (SDM-NDM-GNDM).]{Ejemplo de imagen RGB (SDM-NDM-GNDM). De izquierda a derecha: Modelo 3D, representación SDM, representación NDM, representación GNDM, imagen RGB. \cite{SFIKAS2018208}.}
+    \label{fig:panorama2018}
+\end{figure}
+
+Ambas propuestas de representación generan tres imágenes por cada modelo 3D del conjunto de datos. Estas imágenes conformarán la entrada de tres CNN idénticas que procesarán las imágenes por separado. En la Sección \ref{sec:arquitecturas} se comentará con detalle la composición de estas CNN.
+
+\begin{figure}[ht!]
+    \centering
+    \subfigure{\includegraphics[width=0.7\textwidth]{imagenes/214_Izq_0_panorama_ext_X.png}} 
+    \subfigure{\includegraphics[width=0.7\textwidth]{imagenes/214_Izq_0_panorama_ext_Y.png}} 
+    \subfigure{\includegraphics[width=0.7\textwidth]{imagenes/214_Izq_0_panorama_ext_Z.png}}
+    \caption[Primera propuesta de representación.]{Primera propuesta de representación aplicada a una muestra del conjunto de datos.}
+    \label{fig:panoramaXYZ}
+\end{figure}
+
+\newpage
+
+\begin{figure}[ht!]
+    \centering
+    \subfigure{\includegraphics[width=0.5\textwidth]{imagenes/214_Izq_0_panorama_SDM.png}} 
+    \subfigure{\includegraphics[width=0.5\textwidth]{imagenes/214_Izq_0_panorama_NDM.png}} 
+    \subfigure{\includegraphics[width=0.5\textwidth]{imagenes/214_Izq_0_panorama_GNDM.png}}
+    \caption[Segunda propuesta de representación.]{Segunda propuesta de representación aplicada a una muestra del conjunto de datos.}
+    \label{fig:panoramaSDMNDMGNDM}
+\end{figure}
+
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Arquitecturas de red}
+\label{sec:arquitecturas}
+
+Una vez revisada la representación 2D de los datos que se utilizará, pasemos a describir las CNN que recibirán estos datos como entrada. 
+
+En este proyecto se definen 2 arquitecturas de red diferentes. Una de ellas aplica directamente la propuesta de los desarrolladores de PANORAMA y es aplicable para las dos representaciones presentadas. Mientras tanto, la otra es una arquitectura de red que se basa en aprovechar el concepto de \say{transfer learning} o transferencia de conocimiento, que consiste en utilizar un modelo de red entrenado previamente a resolver un problema parecido para adaptarlo al problema actual.
+
+\subsubsection{Panorama-CNN}
+
+Esta propuesta de CNN es una aplicación directa de la propuesta de CNN presentada en \cite{sfikas2017exploiting, SFIKAS2018208}. La red esta compuesta por un modulo convolucional que se repite varias veces y una parte final que se encarga de realizar la regresión. El módulo convolucional esta formado por una capa convolucional, una capa de activación ReLU y una capa de max pooling. Este módulo se repite tres veces con un tamaño de 64, 256 y 1024 mapas de activación (profundidad). El tamaño de los filtros es 5, 5 y 3 respectivamente y se aplica un zero-padding de 2 a la entrada de cada capa convolucional para evitar que el resultado reduzca su tamaño. La capa de max pooling esta configurada con un tamaño de salto de 2x2, lo que implica que la imagen se reduce a la mitad en cada salida del bloque convolucional. Posterior a los tres módulos convolucionales, se conectan dos capas totalmente conectadas con un tamaño de 100 neuronas, una capa de dropout para ayudar a reducir el overfitting y finalmente una capa totalmente conectada de tamaño 1, que es la salida final del modelo. Todas las capas totalmente conectadas tienen como función de activación la función ReLU. En las Figuras \ref{fig:panoramacnnrgb} y \ref{fig:panoramacnngray} podemos ver un esquema de esta arquitectura de red.\\
+
+Definimos tres redes Panorama-CNN y a cada una se le proporciona una imagen como entrada. Esta entrada pueden ser o bien las imágenes RGB descritas en la primera propuesta (Figura \ref{fig:panoramaXYZ}) o bien los mapas de características por separado descritos en la segunda propuesta (Figura \ref{fig:panoramaSDMNDMGNDM}). La salida de estas tres redes se combina haciendo la media aritmética de las tres estimaciones de edad y esa es la estimación final del modelo.\\
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=\textwidth]{imagenes/rgb_panoramacnn.png}
+    \caption{Red Panorama-CNN con entrada de imágenes RGB.}
+    \label{fig:panoramacnnrgb}
+\end{figure}
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=\textwidth]{imagenes/gray_panoramacnn.png}
+    \caption{Red Panorama-CNN con entrada de mapas de características.}
+    \label{fig:panoramacnngray}
+\end{figure}
+
+% \newpage
+% ~\newpage
+
+\subsubsection{Resnet-CNN}
+
+Esta propuesta de CNN se basa en el uso del \say{transfer learning}. En la Figura \ref{fig:transferlearning} puede verse de forma esquemática en que consiste este método. Como base de la red se utiliza una arquitectura predefinida y pre-entrenada para resolver otro problema distinto. Sin embargo, puede utilizarse este conocimiento previo que ha adquirido la red como punto de partida para comenzar un nuevo entrenamiento especifico al problema de estimación de la edad. Este proceso mejora los resultados obtenidos en problemas que sufren de falta de datos de entrenamiento \cite{tan2018survey}, como es el caso de este problema.\\
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.7\textwidth]{imagenes/Transferlearning.png}
+    \caption{Esquema del funcionamiento de la técnica de transfer learning.}
+    \label{fig:transferlearning}
+\end{figure}\\
+
+La red ResNet (Residual Network) es una arquitectura de CNN basada en aprendizaje residual. Fue presentada por Kaiming He et al. en \cite{he2016deep}. Esta red originalmente fue propuesta como una alternativa de CNN profunda para el reconocimiento de imágenes. Se propone una arquitectura de red basada en la filosofía de las redes VGG \cite{simonyan2014very}, que está compuesta por bloques convoluciones con filtro de tamaño 3x3 (en su mayoría). Esta arquitectura sigue dos principios de diseño: para el mismo tamaño del mapa de características de salida, las capas tienen el mismo número de filtros y si el tamaño del mapa de características se reduce a la mitad, el número de filtros se duplica para preservar la complejidad temporal. Además a esta propuesta se añade conexiones directas entre capas para convertir a la red en una red neuronal residual (ver Figura \ref{fig:resnet}).\\
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=\textwidth]{imagenes/rgb_resnet.png}
+    \caption{Red Resnet-CNN.}
+    \label{fig:resnet-cnn}
+\end{figure}
+
+Concretamente la versión utiliza es ResNet50, que no es más que la arquitectura de ResNet descrita formada por 50 capas de parámetros. Esta red ha sido previamente entrenada para la clasificación de Imagenet \cite{russakovsky2015imagenet}. Éste es un conjunto de datos de imágenes pertenecientes a 1000 clases distintas. Dado que ResNet esta originalmente pensada para clasificación, para poder adaptarla a un problema de regresión, se ha eliminado la ultima capa softmax, encargada de la clasificación, y se ha sustituido por el bloque totalmente conectado descrito en la red Panorama-CNN encargado de realizar la regresión. En la Figura \ref{fig:resnet-cnn} podemos ver un esquema de esta arquitectura de red.\\
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.55\textwidth]{imagenes/resnet.png}
+    \caption[Ejemplo de la arquitectura ResNet34 para Imagenet.]{Ejemplo de la arquitectura ResNet34 para Imagenet. \textbf{Izquierda}: VGG-19 \cite{simonyan2014very}. \textbf{Centro}: Red plana de 34 capas. \textbf{Derecha}: ResNet34, red residual de 34 capas. \cite{he2016deep}}
+    \label{fig:resnet}
+\end{figure}
+
+\newpage
+
+\section{Deep imbalanced regression}
+\label{sec:DIR}
+
+El problema de la estimación de la edad a partir de modelos 3D de las sínfisis púbicas es un problema claramente desbalanceado (ver Figura \ref{fig:histograma}). Esta situación no es exclusiva de nuestro problema, si no que es común e inherente a muchos problemas de ML y DL que trabajan con datos obtenidos directamente de la vida real, especialmente en contextos de diagnóstico médico. Generalmente en problemas relacionados con este campo, existen muchos ejemplos negativos y pocos ejemplos positivos (pensemos en un problema de detección de cáncer mediante radiografías, por ejemplo).\\
+
+Los problemas de regresión mediante DL en el contexto de datos no balanceados se conocen como problemas de \textbf{deep imbalanced regression} (DIR). Estos problemas pueden definirse como el aprendizaje de objetivos continuos a partir de datos que provienen del mundo real, tratando con la potencial falta de datos para ciertos valores objetivos, y generalizando a un conjunto de test que está balanceado sobre el rango completo de valores objetivo \cite{yang2021delving}. Esta definición es análoga al problema del desbalanceo de clases \cite{liu2019large} pero centrado en el espectro continuo.\\
+
+En \cite{yang2021delving}, Yuzhe Yang et al. proponen varios métodos para reducir el problema de desbalanceo de los datos: label distribution smooting (LDS) y feature distribution smoothing (FDS). Para el desarrollo de este proyecto se ha escogido LDS como método de aplicación para reducir el desbalanceo presente en los datos.\\
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.9\textwidth]{imagenes/LDS.png}
+    \caption[Esquema de aplicación de LDS.]{Esquema de aplicación de LDS \cite{yang2021delving}.}
+    \label{fig:lds}
+\end{figure}
+
+\newpage
+
+La técnica LDS consiste en convolucionar un kernel simétrico con la densidad de etiquetas empírica para estimar la distribución de densidad de etiquetas efectiva que tiene en cuenta la continuidad de las etiquetas. (ver Figura \ref{fig:lds}). Una vez obtenida esta distribución de densidad efectiva de etiquetas, las muestras del conjunto de datos son ponderadas en base al inverso de su valor en dicha distribución. En la Sección \ref{sec:balanceo} se muestra cómo se aplica este método en el conjunto de datos.
+
+
+
+% \begin{itemize}
+%     \item \textbf{Label Distribution Smooting} (LDS): convoluciona un kernel simétrico con la densidad de etiquetas empírica para estimar la distribución de densidad de etiquetas efectiva que tiene en cuenta la continuidad de las etiquetas. %(ver Figura \ref{fig:lds}).
+%     \begin{figure}[ht!]
+%         \centering
+%         \includegraphics[width=0.75\textwidth]{imagenes/LDS.png}
+%         \caption{Esquema de aplicación de LDS \cite{yang2021delving}.}
+%         \label{fig:lds}
+%     \end{figure}
+%     \item Feature Distribution Smoothing (FDS): introduce una capa de calibración de características que utiliza un kernel de suavizado para suavizar las distribuciones de la media y la covarancia de las características obtenidas en el espacio de objetivos. %(ver Figura \ref{fig:fds}).
+%     \begin{figure}[ht!]
+%         \centering
+%         \includegraphics[width=0.75\textwidth]{imagenes/FDS.png}
+%         \caption{Esquema de aplicación de FDS \cite{yang2021delving}.}
+%         \label{fig:fds}
+%     \end{figure}
+% \end{itemize}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

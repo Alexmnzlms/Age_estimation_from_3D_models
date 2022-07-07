@@ -1,0 +1,60 @@
+\subsection{Método de normalización de pose: SYNPAN}
+Aunque finalmente este método no se aplicará, el método de normalización de pose SYNPAN \cite{sfikas2014pose} forma parte de la representación PANORAMA, por lo que se desarollará en esta sección. Este método fue desarrollado y presentado por el equipo desarrollador de PANORAMA en 2014 como un método de normalización de la pose de modelos 3D en base a PANORAMA.\\
+
+Este método se divide en tres partes fundamentales:
+\begin{enumerate}
+    \item La generación de la representación panorámica que permite convertir un modelo 3D en una imagen 2D (PANORAMA sección \ref{sec:panorama}).
+    \item Un procedimiento para la estimación de la simetría reflexiva en una imagen PANORAMA.
+    \item La determinación del plano de simetría del objeto 3D que corresponde a dicha simetría de reflexión en la vista panorámica.
+\end{enumerate}
+
+Además de su integración con la representación PANORAMA, el método SYNPAN aprovecha el hecho de que la mayoría de modelos 3D de objetos de la vida real exhiben cierto grado de simetría reflexiva. Los métodos que explotan las simetrías han mostrado un alto rendimiento en términos de normalización de la pose\cite{sfikas2011rosy+,kazhdan2002reflective,chaouch2009alignment}.\\
+
+% \subsubsection{Estimación de la simetría reflexiva de la imagen}
+
+Para calcular la simetría reflexiva de una imagen 2D en escala de grises $I$ se define una ventana deslizante de anchura $W$ y altura $H$. Esta ventana se posiciona inicialmente en el centro de la imagen (ver figura \ref{fig:ventana_deslizante}). 
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{imagenes/ventana_deslizante.png}
+    \caption{Ilustración de los parámetros de la ventana deslizante utilizados para la estimación de la simetría reflexiva encontrada en una imagen 2D}
+    \label{fig:ventana_deslizante}
+\end{figure}
+
+En cada posición de la ventana, se calcula el valor de simetría reflexiva de la columna central $w$:
+
+\begin{equation}
+    Sym(w) = 1 - \frac{1}{2m} \sum_{h=\frac{height}{2}-m}^{\frac{height}{2}+m} SymDiff(w,h)
+\end{equation}
+
+\begin{equation}
+    SymDiff(w,h) = \frac{1}{n} \sum_{x=1}^{n} |(w-x,h) - (w+x,h)|
+\end{equation}
+
+$(w,h)$ indica el píxel de la imagen en la columna $w$ y fila $h$. Establecemos $n = 0.1 \cdot anchura$ y $m = 0.4 \cdot altura$, por lo que la ventana deslizante es de tamaño $W = 0.2 \cdot anchura$ y $H = 0.8 \cdot altura$.\\
+
+Este proceso se repite iterativamente por cada columna de $I$ (ver figura \ref{fig:ejemploSimetria}). El máximo valor de $Sym(w)$ es el valor de simetría de la imagen $I$. Por tanto, el máximo valor de simetría de una imagen $I$ y la columna de la imagen donde se obtiene ese valor se definen:
+
+\begin{equation}
+    S(I) = max\{Sym(w)|w\in1:anchura\}
+\end{equation}
+\begin{equation}
+    S_{index}(I) = argmax\{Sym(w)|w\in1:anchura\}
+\end{equation}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\textwidth]{imagenes/ejemploSimetria.png}
+    \caption{Ejemplo representativo de una imagen panorámica con la columna de simetría indicada junto al gráfico de puntuación de simetría correspondiente extraído por el método propuesto.}
+    \label{fig:ejemploSimetria}
+\end{figure}
+
+% \subsubsection{Estimación de los ejes principales del modelo 3D}
+
+La estimación del plano de simetría del modelo 3D se basa en la simetría reflexiva de su representación panorámica correspondiente. Una vez se determina el plano de simetría, el eje principal del modelo se define como el eje normal al plano de simetría.\\
+
+En primer lugar, se traslada el centroide del modelo 3D al origen de coordenadas, por lo que el modelo 3D queda centrado en el origen. Una vez trasladado, el modelo se escala para que quede inscrito en la esfera unidad. Este proceso se realiza para normalizar el modelo 3D en traslación y escalado.\\
+
+Al normalizar el modelo se consigue que el plano de simetría del modelo 3D pase por el origen de coordenadas. El objetivo es rotar el plano de simetría para que incluya al eje Z, entonces el plano de simetría se detectará en la imagen panorámica. Esto se consigue rotando el modelo en el eje X y calculado la simetría reflexiva de la proyección NDM en el eje Z. Se calcula el ángulo de rotación que maximiza el valor de simetría reflexiva y esta rotación se aplica al modelo. Una vez hecho esto se ha obtenido el eje principal, pero aún es necesario estimar el ángulo respecto a los otros dos ejes. Para realizar esta estimación final el modelo se rota para que el eje Z sea perpendicular al plano de simetría del modelo. Entonces, el modelo se rota respecto al eje Z y se computa la proyección SDM en el eje X. Se calcula la varianza de la proyección SDM. Esto es debido a que la proyección SDM es, en esencia, un mapa de profundidad, por lo que una elevada varianza en la imagen implicaría un modelo que no esta correctamente posicionado. Una vez obtenido el ángulo de rotación que minimiza la varianza de la representación SDM, esta rotación se aplica y el modelo 3D queda alineado correctamente.\\
+
+Para el desarrollo de este proyecto, el algoritmo de normalización de pose SYNPAN ha sido implementado pero finalmente no ha sido aplicado a los modelos 3D. Esto es debido a que los modelos 3D ya tenían un posición concreta otorgada por los antropólogos encargados de su obtención. Al realizar pruebas, la estimación de pose resultado de la aplicación de SYNPAN no presentaba las suficientes diferencias respecto a las poses por defecto de los modelos 3D (más alla de un cambio de plano) por lo que se determinó que el coste computacional y de tiempo de la aplicación de este algoritmo no hubiera contribuido a mejorar los resultados.

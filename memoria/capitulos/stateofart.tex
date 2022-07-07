@@ -1,0 +1,201 @@
+\chapter{Estado del arte}
+\label{chap:estadodelarte}
+
+\section{Estimación del perfil biológico}
+% En el contexto de la AF y más concretamente, en el desempeño de la tarea de la estimación del PB, existen dos escenarios posibles. El más común es que el antropólogo forense tenga acceso directo a los restos óseos para poder realizar la estimación. Estos son extraídos, limpiados y manipulados directamente por el mismo. Un segundo escenario se presenta cuando el antropólogo forense no tiene acceso directo a los restos. Para estos casos existen otras aproximaciones basadas en métodos menos invasivos y adecuados para casos en los que la estimación del PB (sobre todo edad biológica) deba realizarse en individuos vivos \cite{mesejo2020survey}.\\
+
+En el contexto de la AF y más concretamente en el desempeño de la tarea de la estimación del PB, existen dos escenarios posibles. Esta puede realizarse tanto para individuos fallecidos, a través de sus restos óseos, en casos de identificación de cadáveres; como para individuos vivos, en casos de personas desaparecidas o menores no acompañados que solicitan asilo fuera de su lugar de origen.\\
+
+La estimación de la edad es un tema que ha ido tomando relevancia a lo largo del tiempo. En la Figura \ref{fig:publicaciones} podemos ver como el número de publicaciones relacionadas con esta tarea, enmarcada dentro de la AF, ha ido aumento año tras año hasta superar más de 100 publicaciones en los últimos años. Sin embargo, en dicha figura también podemos ver como el número de publicaciones relacionadas con la estimación de la edad y la AF que hagan mención a la inteligencia artificial o al aprendizaje automático no es un tema tan popular. Los métodos automáticos (métodos que hacen usos de técnicas de inteligencia artificial) han comenzado a surgir desde mediados de la década y actualmente no se supera la veintena de publicaciones sobre el tema. Por esto, se remarca la importancia de este proyecto, aplicar un nuevo enfoque a la estimación de la edad a partir de restos óseos de forma automática.\\
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=\textwidth]{imagenes/n_publicaciones.pdf}
+    \caption[Número de publicaciones relacionadas con la estimación de la edad y la AF por año.]{Número de publicaciones relacionadas con la estimación de la edad y la AF por año. \textbf{Azul}: cualquier publicación relacionada con este campo. \textbf{Rojo}: publicaciones que contienen referencias a aprendizaje automático o inteligencia artificial}
+    \label{fig:publicaciones}
+\end{figure}
+
+Para el desarrollo de esta sección, nos centraremos en el escenario de la estimación de la edad en individuos fallecidos a partir de sus restos óseos. Analizaremos el estado del arte de las técnicas actuales tanto manuales como automáticas. Además centraremos nuestra atención en los métodos que estiman la edad mediante el uso de sínfisis púbicas.
+
+
+\subsection{Estimación de la edad a partir de restos óseos}
+
+Realizar esta estimación sobre restos humanos de individuos adultos es una tarea compleja. En la AF existen diferentes métodos aplicables en base a la evolución del proceso degenerativo normal de los restos \cite{ubelaker2020recent}. Las regiones anatómicas más útiles para llevar a cabo la estimación son aquellas que no se ven afectadas por factores externos como el trabajo o la actividad física.
+Los métodos basados en el uso de sínfisis púbicas \cite{todd1921age,brooks1990skeletal,hartnett2010analysis}, la superficie auricular del ilium \cite{buckberry2002age} y el extremo esternal de la cuarta costilla \cite{icscan1984metamorphosis} han mostrado una buena precisión en la estimación de la edad. El análisis del desarrollo y proceso degenerativo del hueso púbico es el método más extendido y esta reconocido como una de las alternativas más fiables \cite{cunha2009problem,dudzik2015estimating}.
+
+\subsection{Estimación de la edad a partir de la sínfisis púbica}
+Los primeros estudios para la estimación de la edad (edad de muerte) mediante el análisis de restos de las sínfisis del pubis fueron los realizados por  T. W. Todd en 1921 \cite{todd1921age}. Todd analizó 360 esqueletos de varones caucásicos en un rango de entre 18 y 60 años para establecer 10 rangos de desarrollo y progreso degenerativo. Para establecer estas fases, Todd definió una descripción morfológica de la sínfisis púbica para cada edad.\\
+
+Aunque existen criticas al método diseñado por Todd, aún 100 años después de la publicación original de \cite{todd1921age}, las características y criterios morfológicos descritos son utilizados a día de hoy como metodología recomendada.\\
+
+Debemos distinguir dos tipos de enfoques en los métodos de estimación de la edad basados en el uso de las sínfisis púbicas. Los métodos que proporcionan una estimación de la edad de la muerte en un intervalo o fase (métodos basados en fases) y los métodos que proveen una estimación de un valor específico para la edad de la muerte de un individuo (métodos numéricos).
+En función de como estos métodos estimen la edad, podemos diferenciar métodos que estiman un valor para cada rasgo o componente por separado y posteriormente combinan las diferentes estimaciones (métodos basados en componentes) o métodos que realizan una estimación de forma global.\\
+
+Actualmente uno de los métodos más recomendados para la estimación de la edad a partir de sínfisis púbicas es el propuesto por Suchey y Brooks \cite{brooks1990skeletal}. Este método es una adaptación de la propuesta de Todd. Suchey y Brooks reducen el número de fases a 6 y modifican los rangos de edad, ampliándolos y superponiéndolos entre ellos. Sin embargo, la forma de aplicar el método seguía siendo prácticamente la misma que la propuesta por Todd: la evaluación subjetiva de las características morfológicas de la sínfisis púbica y la asignación manual de una fase de edad de la muerte por parte de un antropólogo forense.
+\\
+
+Como alternativa a los métodos basados en fases, Gilbert y McKern \cite{gilbert1973method} fueron posiblemente los primeros en considerar un análisis independiente de cada uno de los componentes. Su propuesta se basaba en un sencillo sistema de regresión, que utilizaba una variable continua para la edad de la muerte, obtenida mediante la suma del valor asociado a cada componente por separado (p.ej. las características de la sínfisis púbica). Este valor asociado a las componentes es asignado por un antropólogo forense tras una inspección visual. Aunque el método de Gilbert-McKern no funcionó correctamente, se convirtió en el punto de partida del criticismo hacia los métodos basados en fases por parte de muchos autores en las décadas siguientes.
+\\
+
+A pesar de las adaptaciones propuestas sobre el método de Todd, este método y sus variantes como la de Suchey y Brooks y la de Gilbert y McKern se aplican de forma rutinaria de forma similar a la de la propuesta original. Esto significa que la valoración de los rasgos morfológicos de la sínfisis púbica y su correspondencia con el estándar de cada fase es una valoración subjetiva y depende de la experiencia del antropólogo forense. Por lo tanto, la principal desventaja de estos métodos es la subjetividad presente tanto en la descripción morfológica de las sínfisis púbicas como en la elección de la fase de desarrollo y proceso degenerativo a la que pertenece \cite{dudzik2015estimating}. Esta subjetividad se deriva de la falta de sistematización del método, el cual ofrece descripciones demasiado genéricas que dificultan la discriminación entre fases. En la Tabla \ref{tbl:3dmodelsTodd} podemos apreciar un ejemplo de modelos 3D pertenecientes a cada una de las fases descritas por Todd.\\
+
+\begin{table}[h!]
+  \centering
+  \resizebox{\linewidth}{!}{%
+  \begin{tabular}{ | c | c | c | c | c |}
+    \hline
+    Fase 1 & Fase 2 & Fase 3 & Fase 4 & Fase 5 \\ \hline
+    \begin{minipage}{.3\textwidth}
+      \includegraphics[width=\linewidth, height=60mm]{imagenes/modelfase1.png}
+    \end{minipage}
+    &
+    \begin{minipage}{.3\textwidth}
+      \includegraphics[width=\linewidth, height=60mm]{imagenes/modelfase2.png}
+    \end{minipage}
+    & 
+    \begin{minipage}{.3\textwidth}
+      \includegraphics[width=\linewidth, height=60mm]{imagenes/modelfase3.png}
+    \end{minipage}
+    & 
+    \begin{minipage}{.3\textwidth}
+      \includegraphics[width=\linewidth, height=60mm]{imagenes/modelfase4.png}
+    \end{minipage}
+    & 
+    \begin{minipage}{.3\textwidth}
+      \includegraphics[width=\linewidth, height=60mm]{imagenes/modelfase5.png}
+    \end{minipage}
+    \\ \hline
+    Fase 6 & Fase 7 & Fase 8 & Fase 9 & Fase 10 \\ \hline
+    \begin{minipage}{.3\textwidth}
+      \includegraphics[width=\linewidth, height=60mm]{imagenes/modelfase6.png}
+    \end{minipage}
+    &
+    \begin{minipage}{.3\textwidth}
+      \includegraphics[width=\linewidth, height=60mm]{imagenes/modelfase7.png}
+    \end{minipage}
+    & 
+    \begin{minipage}{.3\textwidth}
+      \includegraphics[width=\linewidth, height=60mm]{imagenes/modelfase8.png}
+    \end{minipage}
+    & 
+    \begin{minipage}{.3\textwidth}
+      \includegraphics[width=\linewidth, height=60mm]{imagenes/modelfase9.png}
+    \end{minipage}
+    & 
+    \begin{minipage}{.3\textwidth}
+      \includegraphics[width=\linewidth, height=60mm]{imagenes/modelfase10.png}
+    \end{minipage}
+    \\ \hline
+  \end{tabular}
+  }
+  \caption{Ejemplos de modelos 3D de sínfisis púbicas pertenecientes a cada una de las fases de Todd.}
+  \label{tbl:3dmodelsTodd}
+\end{table}
+
+Los métodos de estimación de la edad a partir de restos óseos deberían ofrecer el mismo resultado independientemente del experto que lo aplique. Sin embargo, numerosos estudios han demostrado que la efectividad de estos métodos dependen casi exclusivamente de la experiencia del antropólogo forense \cite{schmitt2002variability,kimmerle2008inter}. Ante esta situación, es necesario utilizar métodos que reduzcan la subjetividad de los procesos de estimación de la edad. El uso de técnicas de IA como algoritmos de ML y DL o inteligencia artificial explicable (XAI) en la AF puede beneficiar este área ampliando los métodos existentes y extendiendo su aplicación desde expertos antropólogos a practicantes.\\
+
+Diferentes métodos por ordenador se han considerado con el propósito de objetivizar (y automatizar en algunos casos) la estimación de la edad de la sínfisis del pubis. Los principales avances han ido encaminados a sustituir el estudio directo del hueso por el estudio de modelos 3D digitalizados, ya sea utilizando nuevos criterios o los criterios utilizados en los métodos originales \cite{dedouit2007virtual}.\\
+
+Dentro de los métodos basados en fases encontramos varias propuestas presentadas por equipos de investigación de la Universidad de Granada.\\
+
+En \cite{villar2017first}, Villar et al. modelan el problema como una tarea de clasificación de ML clásico con 10 fases independientes de edad. Los principales rasgos morfológicos del hueso descritos por Todd fueron analizados y modelados como nueve variables lingüísticas basadas en el conocimiento de expertos forenses. Dos antropólogos forenses distintos etiquetaron manualmente un pequeño conjunto de sínfisis púbicas de 74 individuos. Se obtuvieron bases de reglas compactas compuestas por entre 17 y 20 reglas utilizando árboles de decisión difusos. Estos reportaron un un error medio absoluto (MAE) ordinal de 1.07 en todo el conjunto y 1.68 en el conjunto de test mediante validación cruzada en 10 iteraciones. Sin embargo las reglas derivadas no cubrían todas las fases, por lo que el proceso de validación no era totalmente fiable debido a las limitaciones del conjunto de datos (pequeño y no equilibrado) y el enfoque de ML seguido.\\
+
+En \cite{gámez_irurita_gonzález_damas_alemán_cordón_2021}, Gámez-Granados et al. diseñan un sistema explicable y basado en reglas para estimar la edad de la muerte a parir de sínfisis púbicas evocando el conocimiento del método de Todd y su procedimiento. Este método considera nueve características del hueso púbico basadas en las descripciones de Todd y extraídas por antropólogos forenses. Dado que el conjunto de datos utilizado estaba fuertemente desbalanceado, consideran el de sobremuestreo de datos y un algoritmo de aprendizaje de reglas de clasificación ordinal (NSLVOrd \cite{gamez2016ordinal}). El modelo entrenado aporta un error cuadrático medio (RMSE) de 12,34 años y un MAE de 10,38 años en una muestra con 892 huesos del pubis, considerando los valores intermedios de los rangos de edad de las fases de Todd. Hasta el momento es el mejor resultado del estado del arte en cuanto a métodos semi-automáticos basados en fases.\\
+
+Por otro lado dentro de los métodos que estiman directamente la edad de la muerte, encontramos diversos autores que consideran diferentes técnicas de regresión y técnicas de inteligencia artificial para desarrollar nuevos métodos.\\
+
+En \cite{slice2015modeling}, Slice y Algee-Hewitt introducen SHA, un índice para cuantificar la variación de la morfología de la superficie de la sínfisis púbica asociada al envejecimiento en el método de Todd. Se calcula a partir de un análisis de componentes principales (PCA) de los modelos 3D escaneados por láser. SHA se utiliza para diseñar un modelo de regresión lineal evaluado en un estudio que considera 41 esqueletos de varones americanos. \cite{slice2015modeling} obtiene un rendimiento similar a Suchey-Brooks \cite{brooks1990skeletal}, reportando RMSE de 17,15 años.\\ %Los mismos autores presentan una mejora de su método en \cite{stoyanova2015enhanced} considerando una sola característica extraída automáticamente a partir de modelos 3D de las sínfisis púbicas, la flexión de un plano para que este coincida con la superficie del hueso. Un modelo de regresión lineal que estima directamente el valor numérico de la edad de la muerte a partir de una sola variable obtiene un RMSE de unos 19 años en una muestra similar de 56 sujetos en el rango de entre 16 y 100 años. Por último, este equipo introduce dos modelos finales basados en una regresión multivariable haciendo uso de un nuevo conjunto de rasgos que integra características adicionales basadas en la curvatura extraídas de los modelos 3D. Estos modelos finales aportan de un RMSE en el rango de 13,7-16,5 años en una muestra de 93 individuos varones blancos de entre 16 y 90 años.\\
+
+Más adelante en \cite{stoyanova2015enhanced}, Stoyanova et al. diseñan otro modelo lineal que estima la edad a partir de una única variable extraída automáticamente a partir de los modelos 3D de las sínfisis del pubis, la energía de flexión (bending energy). Este enfoque se prueba con 44 esqueletos escaneados de varones blancos documentados y 12 moldes en representación de las fases de Suchey-Brooks \cite{brooks1990skeletal} en el rango de entre 16 y 100 años, reportando un RMSE de aproximadamente 19 años. En \cite{stoyanova2017computational} amplían su anterior trabajo extrayendo nuevas características en base a la curvatura del modelo 3D e integrándolas todas en dos modelos de regresión multivariante. Este trabajo se evalúa en un conjunto de 93 modelos 3D de varones blancos entre 16 y 90 años (68 reales y 25 moldes) obteniendo un RMSE de entre 13,7 y 16,5.\\
+
+En \cite{kotverova2018age}, Koterova et al. proponen nueve métodos de regresión automática para la estimación de la edad. En su propuesta, combinan tres rasgos de la sínfisis púbica con cuatro de la superficie auricular del ilium. Estos métodos se validan en un conjunto de datos de 941 individuos multiétnicos de adultos entre 19 y 100 años. Se consideraron enfoques de regresión clásica, K-NN vecinos cercanos, modelos Bayesianos, arboles de regresión y redes neuronales. La regresión multlineal fue el mejor de los predictores, aportando un RMSE de 12,1 años y un MAE de 9,7 años.\\
+
+En \cite{dudzik2015estimating}, Dudzik y Langley se centran en la incertidumbre que surge de las definiciones de los rasgos óseos y la dificultad de los antropólogos para entenderlas. Se analizan las características óseas en las etapas previas a los cambios degenerativos avanzados en 237 individuos americanos. La regresión logística multinomial y los arboles de decisión se aplican sobre una muestra de 47 individuos jóvenes en el rango de edad de entre 18 y 40 años, utilizando cinco rasgos de la sínfisis púbica. Reportan un 94\% de precisión, pero considerando solo 3 fases distintas.\\
+
+En \cite{villegas_TFG}, Bermejo et al. proponen un nuevo enfoque semi-automático basado en componentes a partir de los rasgos morfológicos de las sínfisis púbicas propuestos por Todd. Este método se basa en la obtención de en una expresión matemática que combina los valores de de los distintos componentes, proporcionados por el experto forense, en un valor numérico para la edad de la muerte. Se consideran métodos de ML explicables, haciendo uso de la programación genética para derivar dichas fórmulas a partir de los datos de la base de datos pública disponible en el Laboratorio de Antropología Física de la Universidad de Granada. Se sigue un enfoque de ciencia de datos guiado por la teoría \cite{karpatne2017theory} que combina la experiencia del antropólogo forense y las descripciones explicables derivadas de los datos. Se proponen dos enfoques, uno aplica técnicas de programación genética (GP) y el otro combinando esto con algoritmos genéticos (GA-P). Ambos enfoques aportan resultados de RMSE 10,81 y MAE 8,55.
+\\
+
+Finalmente en \cite{castillo2021preliminary}, Castillo et al. proponen un nuevo método basado en fases y en componentes diseñado utilizando métodos de ML. Con el objetivo de manejar tanto la variación interindividual como la subjetividad de los sistemas de puntuación visual, su marco considera 16 rasgos diferentes de la sínfisis púbica, incluyendo uno novedoso que no ha sido utilizado previamente (microranuras). Todos ellos sólo presentan dos valores categóricos (presente o ausente) para facilitar la tarea de etiquetado al antropólogo forense. Se aplica un método de selección de características sobre cada uno de las 5 fases de edad de la muerte analizadas para seleccionar las mejores características considerando para ello tres algoritmos diferentes de ML (ZeroR, Naïve Bayes y Random Forest). Los autores muestran resultados muy prometedores para algunas fases de edad así como una discriminación entre características útiles e inútiles.\\
+
+En la Tabla \ref{tab:state_of_art_estimacion} podemos ver un resumen de los resultados presentes en el estado del arte introducidos en esta sección.
+% Please add the following required packages to your document preamble:
+% \usepackage{graphicx}
+\begin{table}[ht!]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|l|c|c|c|c|}
+\hline
+\textbf{Método} & \textbf{Tipo} & \textbf{N muestras} & \textbf{Rango de edad} & \textbf{RMSE} & \textbf{MAE} \\ \hline
+Slice y Algee-Hewitt \cite{slice2015modeling} & N, CS & 41 & 19 - 96 & 17,15 & - \\ \hline
+Stoyanova et al. \cite{stoyanova2015enhanced} & N, CS & 56 & 16 - 100 & 19 & - \\ \hline
+Stoyanova et al. \cite{stoyanova2017computational} & N, CS & 93 & 16 - 90 & 13,7 - 16,5 & - \\ \hline
+Koterova et al. \cite{kotverova2018age} & N, CS & 941 & 19 - 100 & 12,1 & 9,7 \\ \hline
+Gámez-Granados et al. \cite{gámez_irurita_gonzález_damas_alemán_cordón_2021} & PB, G & 892 & 18 - 60 & 13,19 & 10,38 \\ \hline
+Gámez-Granados et al. \cite{gámez_irurita_gonzález_damas_alemán_cordón_2021} & PB, G & 960 & 18 - 60 & 14,61 & 11,62 \\ \hline
+Bermejo et al \cite{villegas_TFG} (GP) & N, CS & 1152 & 18-82 & 10,82 & 8,56 \\ \hline
+Bermejo et al \cite{villegas_TFG} (GA-P) & N, CS & 1152 & 18-82 & \textbf{10,81} & \textbf{8,55} \\ \hline
+\end{tabular}%
+}
+\caption[Resumen de los resultados presentes en el estado del arte de los métodos de estimación de la edad.]{Resumen de los resultados presentes en el estado del arte de los métodos de estimación de la edad. \textbf{Tipo}: PB, basado en fases; N, numérico; CS, basado en componentes; G, global. \textbf{MAE} y \textbf{RMSE} indican el error medido en años.}
+\label{tab:state_of_art_estimacion}
+\end{table}
+
+%\section{Técnicas de Deep Learning para representación de datos en 3D}
+
+\section{Representación de datos 3D}
+
+En la Sección \ref{sec:datos3d} se han introducido todas las opciones para representar datos 3D utilizadas actualmente en el paradigma del DL. En esta sección haremos un análisis de cuáles son las más adecuadas para la utilización en la estimación de la edad mediante el uso de sínfisis púbicas.
+\\
+
+En primer lugar descartamos la representación RGB-D. Dado que los modelos de los que se dispone son modelos 3D completos especificados como una lista de vértices y aristas, se produciría una pérdida de información geométrica al utilizar esta representación. Descartaremos también el uso de representaciones volumétricas (vóxeles y octrees). Este tipo de representaciones se centran en proporcionar información sobre como el modelo 3D ocupa el espacio. Los vóxeles requieren un uso elevado de memoria para representar datos en alta resolución. Los octrees por otro lado, aunque no tienen el problema de usar demasiada memoria, no pueden capturar correctamente propiedades del modelo 3D como la morfología de la superficie. Dado que esta propiedad puede proporcionar información fundamental de la que se podrán extraer características discriminatorias, la representación con vóxeles y octrees de los modelos 3D conllevaría grandes pérdidas de información.
+\\
+
+Por tanto las posibles opciones se reducen a: proyecciones 3D, nubes de puntos, mallas 3D, descriptores 3D, grafos y múltiples vistas. Descartamos los descriptores 3D debido a que los resultados obtenidos dependerán de la capacidad del descriptor escogido de codificar correctamente la información geométrica de los modelos 3D. Dado que los modelos 3D empleados poseen un alto nivel de detalle, sería necesario utilizar un descriptor muy potente. Además, dado que las características que permiten estimar la edad de las sínfisis púbica se encuentran bien definidas \cite{todd1921age}, se ha decidido optar por un modelo que no dependa de una representación codificada. De esta forma el modelo podrá extraer las características directamente de los datos y estas podrán compararse con las definidas por Todd. \\
+
+% \sout{En cuanto a las proyecciones 3D, también las descartamos debido a que en el proceso de proyección de los puntos del modelo 3D al plano 2D podría producirse perdida de información geométrica.}
+
+Descartamos también las nubes de puntos dado que estas son similares a la representación de grafos y mallas pero eliminando el componente de conectividad de los puntos. Por esto, si utilizamos esta representación se estaría eliminando información útil necesaria para el proceso de estimación de la edad. Finalmente descartamos la representación en múltiples vistas, pues aunque estas codifican información de modelos 3D, el objetivo de este proyecto es trabajar directamente con los datos 3D como entrada del modelo.
+\\
+
+% \sout{Descartadas estas opciones solo nos queda la representación en grafos y en mallas 3D. Estas dos representaciones son muy similares entre si, dado que una malla 3D puede verse también como un grafo no dirigido G = (V,E) tal que V esta formada por los vértices de la malla y E por las aristas. Por esto se mantendrá la estructura de malla 3D de los modelos 3D, pero se utilizará un modelo de Geometric Deep Learning (GDL) para realizar la estimación.}
+
+Descartadas estas opciones solo nos quedan las proyecciones 3D, la representación en grafos y la representación en mallas 3D. Estas últimas son muy similares entre si, dado que una malla 3D puede verse también como un grafo no dirigido G = (V,E) tal que V esta formada por los vértices de la malla y E por las aristas. Se barajó el uso de modelos de geometric deep learning (GDL), que utilizan mallas 3D como entrada de datos. Sin embargo, estos tienen grandes inconvenientes. Los ejemplos disponibles en la literatura actual trabajan con mallas 3D formadas por un número limitado de polígonos. Dado que los datos disponibles para entrenamiento, cuentan con una media de 1.000.000 de polígonos\footnote{La media de polígonos de los datos de entrenamiento es 1.001.507,08}. Para poder procesar modelos con una definición tan alta, sería necesario calcular una malla simplificada para cada modelo 3D, con menor número de polígonos. Esto conllevaría una perdida de información geométrica del modelo, pero de no realizarse, sería imposible entrenar el modelo con el hardware disponible. Por ello, la representación en mallas 3D/grafos queda descartada.\\
+
+% La representación utilizada será una basada en proyecciones 3D, que se desarrollará con mayor detalle en el Capítulo \ref{chap:metodologia}.
+
+Finalmente, queda como última opción la representación haciendo uso de proyecciones 3D. Esta representación puede ser muy versátil, ya que su aplicación es compatible con el uso de modelos y arquitecturas de DL clásico que han mostrado ser muy competitivas a la hora de resolver tareas de clasificación y regresión. Procedamos entonces a estudiar y analizar las representaciones basadas en proyecciones 3D presentes en la literatura.
+
+\subsection{Representaciones basadas en proyecciones 3D}
+
+Zhu et al. \cite{zhu2016deep} proponen uno de los primeros intentos de de aprender de datos 3D proyectándolos sobre superficies 2D. El proceso propuesto comienza con un preprocesamiento de datos en el que se aplica la traslación, el escalado y la normalización de la postura a cada modelo 3D. A continuación, se aplican varias proyecciones 2D a cada modelo 3D procesado para alimentar una pila de máquinas de Boltzmann restringidas (RBM) para extraer las características de las diferentes proyecciones. Los experimentos muestran que este sistema se comporta mejor que las técnicas basadas en descriptores globales.\\
+
+Shi et al. \cite{shi2015deeppano} proponen DeepPano. DeepPano se refiere a la extracción de vistas panorámicas 2D de objetos 3D empleando una proyección cilíndrica alrededor del eje principal del objeto 3D. Para entrenar el modelo se utiliza una arquitectura CNN clásica 2D. El modelo propuesto se prueba en tareas de reconocimiento y recuperación de objetos en 3D donde demuestra su eficacia en comparación con los modelos anteriores.\\
+
+Sinha et al. en \cite{sinha2016deep} proponen imágenes geométricas en las que los objetos 3D se proyectan en una cuadrícula 2D para poder emplear las CNN clásicas 2D. El método propuesto crea una parametrización planificadora para los objetos 3D utilizando una parametrización auténtica (que conserva el área) en un dominio esférico para aprender las superficies de las formas 3D. A continuación, las imágenes geométricas construidas se utilizan como entradas de una arquitectura clásica de CNN para aprender las características geométricas de los objetos 3D. Los resultados muestran que las imágenes geométricas pueden producir resultados comparables con el estado del arte.\\
+
+Cao et al. \cite{cao20173d} proponen utilizar una proyección de dominio esférico para proyectar objetos 3D alrededor de su baricentro produciendo un conjunto de parches cilíndricos. El modelo propuesto utiliza los parches cilíndricos proyectados como entrada para CNNs pre-entrenadas. También se utilizan dos proyecciones complementarias para capturar mejor las características 3D. El modelo propuesto se utiliza para la tarea de clasificación de objetos 3D y se prueba en múltiples conjuntos de datos, produciendo resultados comparables a los de los métodos anteriores.\\
+
+Sfikas et al. \cite{sfikas2017exploiting} proponen representar objetos 3D como vistas panorámicas extraídas de objetos 3D con poses normalizadas. Inicialmente, los objetos 3D son preprocesados para normalizar sus poses utilizando el marco de \say{Pose Normalization of 3D Models via Reflective Symmetry on Panoramic Views (SymPan)} \cite{sfikas2014pose}. A continuación, se extraen las vistas panorámicas para combinarlas y alimentar la CNN para realizar tareas de clasificación y recuperación de pose. Una extensión de este modelo se introduce en \cite{SFIKAS2018208} donde se utiliza un conjunto de CNNs para el proceso de aprendizaje. Esta extensión produce muy buenos resultados en los conjuntos de datos utilizados.\\
+
+En la Tabla \ref{tab:state_of_art_proyecciones} podemos ver un resumen de los resultados presentes en el estado del arte introducidos en esta sección. Los resultados han sido probados en el conjunto de datos ModelNet \cite{wu20153d}, un conjunto a gran escala de modelos 3D de objetos cotidianos (en su versión de 10 y 40 clases), para resolver un problema de clasificación.
+
+\begin{table}[ht!]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Método} & \textbf{Modelo DL} & \textbf{Dataset} & \textbf{Precisión} \\ \hline
+\multirow{2}{*}{Shi et al. \cite{shi2015deeppano}} & \multirow{2}{*}{CNN} & ModelNet10 & 85,45\% \\ \cline{3-4} 
+ &  & ModelNet40 & 77,63\% \\ \hline
+\multirow{2}{*}{Sinha et al. \cite{sinha2016deep}} & \multirow{2}{*}{CNN} & ModelNet10 & 88,4\% \\ \cline{3-4} 
+ &  & ModelNet40 & 83,9\% \\ \hline
+Cao et al. \cite{cao20173d} & CNN & ModelNet40 & 94,24\% \\ \hline
+\multirow{2}{*}{Sfikas et al. \cite{sfikas2017exploiting}} & \multirow{2}{*}{CNN} & ModelNet10 & 91,1\% \\ \cline{3-4} 
+ &  & ModelNet40 & 90,7\% \\ \hline
+\multirow{2}{*}{Sfikas et al. \cite{SFIKAS2018208}} & \multirow{2}{*}{CNN Ensemble} & ModelNet10 & \textbf{96,85\%} \\ \cline{3-4} 
+ &  & ModelNet40 & \textbf{95,56\%} \\ \hline
+\end{tabular}%
+}
+\caption{Resumen de los resultados presentes en el estado del arte de los métodos de representación de datos 3D mediante proyecciones.}
+\label{tab:state_of_art_proyecciones}
+\end{table}

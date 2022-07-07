@@ -1,0 +1,135 @@
+\chapter{Planificación e implementación}
+\label{chap:planyimpl}
+
+\section{Planificación del proyecto}
+
+Para el desarrollo de este proyecto, se planteó una temporización como la que puede verse en la Tabla \ref{tab:plan_ini}. El trabajo de fin de grado esta dotado con una carga lectiva de 12 créditos ECTS, por lo que aplicando una conversión de 1 ECTS = 25 horas de trabajo, el desarrollo de un TFG esta planteado para tener una duración de 300 horas. Se cuenta con un total de 20 semanas, la duración aproximada de un cuatrimestre. Por tanto quedan unas 15 horas por semana, lo que hace un total de 3 horas al día teniendo en cuenta solo días laborables.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+% \usepackage{graphicx}
+% \usepackage[table,xcdraw]{xcolor}
+% If you use beamer only pass "xcolor=table" option, i.e. \documentclass[xcolor=table]{beamer}
+\begin{table}[ht!]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|c|lcclcccclclccccccccc|}
+\hline
+\multicolumn{1}{|c|}{} &  & \multicolumn{3}{c|}{Febrero} & \multicolumn{4}{c|}{Marzo} & \multicolumn{4}{c|}{Abril} & \multicolumn{5}{c|}{Mayo} & \multicolumn{4}{c|}{Junio} \\ \cline{3-22} 
+\multicolumn{1}{|c|}{\multirow{-2}{*}{Fase}} & \multirow{-2}{*}{\begin{tabular}[c]{@{}c@{}}Duración\\ semanas - horas\end{tabular}} & \multicolumn{1}{c|}{14} & \multicolumn{1}{c|}{21} & \multicolumn{1}{c|}{28} & \multicolumn{1}{c|}{07} & \multicolumn{1}{c|}{14} & \multicolumn{1}{c|}{21} & \multicolumn{1}{c|}{28} & \multicolumn{1}{c|}{04} & \multicolumn{1}{c|}{11} & \multicolumn{1}{c|}{18} & \multicolumn{1}{c|}{25} & \multicolumn{1}{c|}{02} & \multicolumn{1}{c|}{09} & \multicolumn{1}{c|}{16} & \multicolumn{1}{c|}{23} & \multicolumn{1}{c|}{30} & \multicolumn{1}{c|}{06} & \multicolumn{1}{c|}{13} & \multicolumn{1}{c|}{20} & 27 \\ \hline
+Revisión bibliográfica & 3 - 45 & \multicolumn{3}{l|}{\cellcolor[HTML]{999999}} & \multicolumn{17}{l|}{} \\ \hline
+\begin{tabular}[c]{@{}l@{}}Implementación de\\ la representación 3D\end{tabular} & 5 - 75 & \multicolumn{3}{l|}{} & \multicolumn{5}{l|}{\cellcolor[HTML]{999999}} & \multicolumn{12}{l|}{} \\ \hline
+Diseño de modelos & 2 - 30 & \multicolumn{8}{l|}{} & \multicolumn{2}{l|}{\cellcolor[HTML]{999999}} & \multicolumn{10}{l|}{} \\ \hline
+\begin{tabular}[c]{@{}l@{}}Entrenamiento de \\ modelos\end{tabular} & 10 - 150 & \multicolumn{10}{l|}{} & \multicolumn{10}{l|}{\cellcolor[HTML]{999999}} \\ \hline
+\end{tabular}%
+}
+\caption{Planificación temporal inicial del proyecto.}
+\label{tab:plan_ini}
+\end{table}
+
+Finalmente la planificación inicial sufrió una serie de retrasos, alargando el tiempo dedicado a la revisión bibliográfica y retrasando las siguientes tareas, aunque el proceso de entrenamiento de los modelos conllevo menos tiempo del esperado. La planificación final del proyecto puede verse en la Tabla \ref{tab:plan}.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+% \usepackage{graphicx}
+% \usepackage[table,xcdraw]{xcolor}
+% If you use beamer only pass "xcolor=table" option, i.e. \documentclass[xcolor=table]{beamer}
+\begin{table}[ht!]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|c|lccccclcccclclcccccc|}
+\hline
+\multicolumn{1}{|c|}{} &  & \multicolumn{3}{c|}{Febrero} & \multicolumn{4}{c|}{Marzo} & \multicolumn{4}{c|}{Abril} & \multicolumn{5}{c|}{Mayo} & \multicolumn{4}{c|}{Junio} \\ \cline{3-22} 
+\multicolumn{1}{|c|}{\multirow{-2}{*}{Fase}} & \multirow{-2}{*}{\begin{tabular}[c]{@{}c@{}}Duración\\ semanas - horas\end{tabular}} & \multicolumn{1}{c|}{14} & \multicolumn{1}{c|}{21} & \multicolumn{1}{c|}{28} & \multicolumn{1}{c|}{07} & \multicolumn{1}{c|}{14} & \multicolumn{1}{c|}{21} & \multicolumn{1}{c|}{28} & \multicolumn{1}{c|}{04} & \multicolumn{1}{c|}{11} & \multicolumn{1}{c|}{18} & \multicolumn{1}{c|}{25} & \multicolumn{1}{c|}{02} & \multicolumn{1}{c|}{09} & \multicolumn{1}{c|}{16} & \multicolumn{1}{c|}{23} & \multicolumn{1}{c|}{30} & \multicolumn{1}{c|}{06} & \multicolumn{1}{c|}{13} & \multicolumn{1}{c|}{20} & 27 \\ \hline
+Revisión bibliográfica & 6 - 90 & \multicolumn{6}{l|}{\cellcolor[HTML]{999999}} & \multicolumn{14}{l|}{} \\ \hline
+\begin{tabular}[c]{@{}l@{}}Implementación de\\ la representación 3D\end{tabular} & 5 - 75 & \multicolumn{6}{l|}{} & \multicolumn{5}{l|}{\cellcolor[HTML]{999999}} & \multicolumn{9}{l|}{} \\ \hline
+Diseño de modelos & 2 - 30 & \multicolumn{11}{l|}{} & \multicolumn{2}{l|}{\cellcolor[HTML]{999999}} & \multicolumn{7}{l|}{} \\ \hline
+\begin{tabular}[c]{@{}l@{}}Entrenamiento de \\ modelos\end{tabular} & 7 - 105 & \multicolumn{13}{l|}{} & \multicolumn{7}{l|}{\cellcolor[HTML]{999999}} \\ \hline
+\end{tabular}%
+}
+\caption{Planificación temporal final del proyecto.}
+\label{tab:plan}
+\end{table}
+\newpage
+
+Respecto a los costes del proyecto, en la Tabla \ref{tab:costes} puede consultarse la estimación de costes realizada. Para esta estimación se ha supuesto un coste por hora para un investigador senior o responsable de I+D en una empresa de base tecnológica de 35 euros/hora. Además se ha añadido una categoría de coste de los materiales donde se incluyen los gastos derivados de acceder a artículos de pago, desgaste de componentes hardware, adquisición de dispositivos de almacenamiento masivos, etc.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{graphicx}
+\begin{table}[ht!]
+\centering
+\begin{tabular}{|l|r|}
+\hline
+\textbf{Fecha de inicio} & 14/02/2022 \\ \hline
+\textbf{Fecha de fin} & 03/07/2022 \\ \hline
+\textbf{Duración en días (laborables - totales)} & 100 - 140 \\ \hline
+\textbf{Coste del desarrollo} & 10.500,00 \geneuro \\ \hline
+\textbf{Coste de los materiales} & 3.000,00 \geneuro \\ \hline
+\textbf{Coste total} & \textbf{13.500,00 \geneuro} \\ \hline
+\end{tabular}%
+\caption{Costes del proyecto.}
+\label{tab:costes}
+\end{table}
+
+\section{Detalles técnicos de la implementación}
+
+\subsection{Implementación de la representación PANORAMA}
+La implementación del preprocesador para obtener la representación PANORAMA de un modelo 3D se ha desarrollado en C++. Inicialmente el desarrollo comenzó en Python pero la primera versión del programa tomaba demasiado tiempo para generar una sola proyección panorámica. Dado que PANORAMA se basa en computar varias proyecciones por cada modelo 3D, el tiempo necesario para generar una proyección se convirtió en un factor clave. El desarrollo pasó a C++ y se consiguió una mejora de velocidad sustancial.\\
+
+% \subsection{Clase Mesh3D}
+Toda la estructura del código se basa en la clase \textbf{Mesh3D}. En la Figura \ref{fig:mesh3d} puede consultarse el diagrama de esta clase. Las principales funciones desarrolladas son las siguientes:
+
+% \begin{figure}[ht!]
+%     \centering
+%     \includegraphics[height=\textwidth]{imagenes/classMesh3D__coll__graph.png}
+%     \caption{Caption}
+%     \label{fig:my_label}
+% \end{figure}
+
+\begin{itemize}
+    \item \href{https://alexmnzlms.github.io/panorama_extended/classMesh3D.html#a0a984cd43ac240bc77aedaa564824fbb}{\texttt{calculate\_panorama()}}: Es la función principal. Computa una mapa de características (SDM o NDM+GNDM) para un eje de coordenadas dados como parámetros. Para mejorar el rendimiento, dado que es necesario realizar raytracing para poder calcular las colisiones con los rayos, se ha definido la función \href{https://alexmnzlms.github.io/panorama_extended/classMesh3D.html#a8cfc87c76eed8c2e11c14f87d2e2788a}{\texttt{filter\_faces()}} que realiza un filtrado de las caras del modelo 3D según la orientación y la altura del rayo para ahorrar costes de computación en cálculo de rayos. Para calcular la colisión entre un rayo y una cara del modelo se utiliza el algoritmo de intersección Möller–Trumbore \cite{Moller97} que se implementa en la función \href{https://alexmnzlms.github.io/panorama_extended/classMesh3D.html#afae60cf7754feb072082d08d46660609}{\texttt{RayIntersectsTriangle()}}. En la Figura \ref{fig:calculatepanorama} puede verse el grafo de llamadas a esta función.
+    \begin{figure}[ht!]
+        \centering
+        \subfigure{\includegraphics[width=\linewidth]{imagenes/classMesh3D_calculate_panorama_cgraph.png}}\\
+        \subfigure{\includegraphics[width=\linewidth]{imagenes/classMesh3D_calculate_panorama_icgraph.png}}
+        \caption{Grafo de llamadas de \texttt{calculate\_panorama()}.}
+        \label{fig:calculatepanorama}
+    \end{figure}
+    \item \href{https://alexmnzlms.github.io/panorama_extended/classMesh3D.html#abcfbcc10775544bcf4c5d1d706dd23b5}{\texttt{combine\_panorama()}}: Genera la primera de las propuestas de representación PANORAMA utilizada en este proyecto (Figura \ref{fig:panoramaXYZ}) y la almacena en una ruta de salida proporcionada como parámetro. En la Figura \ref{fig:combinepanorama} puede verse el grafo de llamadas a esta función.
+    \begin{figure}[ht!]
+        \centering
+        \subfigure{\includegraphics[width=0.7\linewidth]{imagenes/classMesh3D_combine_panorama_cgraph.png}}\\
+        \subfigure{\includegraphics[width=0.7\linewidth]{imagenes/classMesh3D_combine_panorama_icgraph.png}}
+        \caption{Grafo de llamadas de \texttt{combine\_panorama()}.}
+        \label{fig:combinepanorama}
+    \end{figure}
+    \item \href{https://alexmnzlms.github.io/panorama_extended/classMesh3D.html#a5d8447c5025429061006dd3fb2d4632b}{\texttt{concat\_panorama()}}: Genera la segunda de las propuestas de representación PANORAMA utilizada en este proyecto (Figura \ref{fig:panoramaSDMNDMGNDM}) y la almacena en una ruta de salida proporcionada como parámetro. En la Figura \ref{fig:concatpanorama} puede verse el grafo de llamadas a esta función.
+    \begin{figure}[ht!]
+        \centering
+        \subfigure{\includegraphics[width=0.7\linewidth]{imagenes/classMesh3D_concat_panorama_cgraph.png}}\\
+        \subfigure{\includegraphics[width=0.7\linewidth]{imagenes/classMesh3D_concat_panorama_icgraph.png}}
+        \caption{Grafo de llamadas de \texttt{concat\_panorama()}.}
+        \label{fig:concatpanorama}
+    \end{figure}
+\end{itemize}
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[height=1.1\textwidth]{imagenes/classMesh3D__coll__graph.png}
+    \caption{Diagrama de la clase Mesh3D.}
+    \label{fig:mesh3d}
+\end{figure}
+
+Toda la documentación sobre la implementación de PANORAMA está disponible en: \url{https://alexmnzlms.github.io/panorama_extended/}. Gracias al software de documentación de Doxygen y a la funcionalidad de Github Pages, la documentación en totalmente accesible de forma pública. Además el código también se encuentra públicamente accesible en: \url{https://github.com/Alexmnzlms/panorama_extended}.\\
+
+\subsection{Entrenamiento de los modelos}
+Para el entrenamiento de los modelos se ha utilizado Python como lenguaje de programación por las potentes bibliotecas de ML y DL disponibles. Los modelos se han definido construido y entrenado haciendo uso de las bibliotecas de TensorFlow(v.2.9.0 gpu), una biblioteca desarrollada por Google para aplicar métodos de ML en conjunto con Keras(v.2.9.0), una biblioteca específica para redes neuronales capaz de operar sobre TensorFlow. Se ha utilizado la versión de Tensorflow gpu, que permite la aplicación de optimización GPU para acelerar el entrenamiento de los modelos junto con las bibliotecas de CUDA Toolkit (v.11.3.1) y CuDNN (v.8.2.1) para gestionar los núcleos CUDA de las gráficas NVIDIA. Como bibliotecas auxiliares se ha utilizado Numpy(v.1.22.3) para el uso de vectores, Pandas (v.1.4.2) para poder trabajar con los datos utilizando DataFrames, Sciki Learn (v.1.0.2) para funciones auxiliares de ML, OpenCV (v.4.5.5.64) para trabajar con las imágenes de entrada de las CNN y finalmente Scipy (v.1.7.3) para la aplicación del operador matemáticos de convolución. Todo esto se ha gestionado utilizando Anaconda (v.2021-05.1) como gestor de entornos.\\
+
+Todo el código utilizado para entrenar los modelos esta disponible en: \url{https://github.com/Alexmnzlms/Age_estimation_from_3D_models}.\\
+
+Todos los modelos han sido entrenados en un entorno Arch Linux x86\_64 Linux 5.17.9-arch1-1, junto con el siguiente hardware:
+\begin{itemize}
+    \item \textbf{CPU}: AMD Ryzen 5 3600 6-Core Processor 12x 3.6GHz
+    \item \textbf{RAM}: 16GB DDR4 
+    \item \textbf{GPU}: NVIDIA GeForce RTX 3060 12GB GDDR6
+\end{itemize}

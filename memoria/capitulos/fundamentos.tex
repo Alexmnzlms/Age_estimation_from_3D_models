@@ -1,0 +1,254 @@
+\chapter{Fundamentos teóricos}
+\label{chap:fundamentos}
+
+Esta sección tiene como objetivo presentar y explicar los fundamentos teóricos en los que se basan los métodos utilizados en el desarrollo de este proyecto, así como justificar su relevancia en la resolución del problema que se plantea.
+
+\section{Machine learning}
+
+El \textbf{machine learning} (ML) o \textbf{aprendizaje automático} \cite{bishop2006pattern,alpaydin2020introduction,abu2012learning} es una rama de la inteligencia artificial centrada en el uso de datos y algoritmos para desarrollar y entender modelos que sean capaces de aprender patrones existentes en los datos de forma progresiva. 
+La forma en que estos modelos aprenden es mejorando gradualmente su rendimiento al resolver una tarea o problema concretos.
+
+Los modelos de ML pueden aprender a partir de datos de cualquier tipo: números, palabras, estadísticas, imágenes, etc. 
+Cualquier información almacenada digitalmente puede utilizarse como entrada para un modelo.
+Los modelos aprenden información de los patrones extraídos de los datos de entrenamiento, mejorando su rendimiento con el tiempo. 
+Una vez entrenado, un modelo podrá identificar los patrones aprendidos en nuevos datos, distintos a los utilizados en el proceso de entrenamiento.
+
+Estos modelos tienen una amplia variedad de aplicaciones: visión por computador, reconocimiento del lenguaje natural, aplicaciones en el campo de la medicina, filtrado automático de contenido, etc. 
+Son particularmente útiles en tareas que no pueden ser abordadas por algoritmos convencionales.\\
+
+Diferenciamos tres aproximaciones o problemáticas principales dentro del ML: aprendizaje supervisado, aprendizaje no supervisado y aprendizaje por refuerzo.\\
+\newpage
+El \textbf{aprendizaje supervisado} consiste en presentar los datos de entrenamiento como un conjunto de datos de entrada (\textit{inputs}) etiquetados con la información que debe determinar (\textit{output}). Está aproximación requiere un menor número de datos de entrenamiento y facilita el proceso de aprendizaje, ya que los resultados obtenidos por el modelo pueden compararse con los datos ya etiquetados. Sin embargo, este proceso de etiquetado puede ser costoso, ya que hay que conocer previamente como se deben etiquetar los datos para que el modelo pueda aprender y aplicar el conocimiento adquirido en la clasificación de nuevos datos. Además, el modelo es muy sensible al etiquetado de datos, pudiendo obtener modelos sesgados en función al etiquetado de los datos de entrenamiento.
+Las problemáticas de aprendizaje supervisado incluyen algoritmos de clasificación y regresión. Los algoritmos de clasificación se aplica en tareas donde las etiquetas están limitadas a un conjunto de valores discretos, mientras que los de regresión se aplican en casos en los que las etiquetas presentan un dominio continuo de valores.\\
+
+A diferencia del aprendizaje supervisado, en el \textbf{aprendizaje no supervisado} los datos de entrada no se encuentran etiquetados. Esta aproximación se centra en la identificación de patrones y relaciones existentes en el conjunto de datos de entrenamiento, de forma que pueda etiquetar y clasificar los datos sin la intervención humana. Requiere un mayor número de datos y es menos utilizada frente a otras aproximaciones. El aprendizaje semi-supervisado es un enfoque intermedio que consiste en utilizar un subconjunto de datos etiquetado para guiar la extracción y detección de patrones en el conjunto no etiquetado.\\
+
+Finalmente, el \textbf{aprendizaje por refuerzo} se basa en determinar las acciones que debe llevar a cabo un algoritmo o agente en un determinado entorno, con el objetivo de maximizar la recompensa acumulada. El agente es recompensando positiva o negativamente en función de su desempeño. Esta técnica se aplica en campos como los algoritmos genéticos o la teoría de juegos.\\
+
+Aunque estas tres problemáticas son las principales, existen muchas aproximaciones distintas como el aprendizaje débilmente supervisado, auto-supervisado, multitarea, etc. Muchas de estas reúnen características de varias aproximaciones, como es el caso del aprendizaje semi-supervisado. Las aproximaciones que hemos comentado no son departamentos estancos, por lo que un algoritmo de ML puede ubicarse en varias de ellas en función de como se aborde el problema a resolver.
+\newpage
+\section{Deep learning}
+El \textbf{deep learning} (DL) o \textbf{aprendizaje profundo} \cite{lecun2015deep,schmidhuber2015deep,goodfellow2016deep} es un subcampo del ML. Los métodos de DL tienen como objetivo obtener representaciones más abstractas (en ultima instancia, más útiles) mediante la combinación de múltiples transformaciones no lineales \cite{bengio2013representation}. ML y DL difieren en cómo aprende cada algoritmo. DL automatiza el proceso de extracción de características de los datos, eliminando la intervención humana y consiguiendo que los algoritmos de DL sean aplicables en conjuntos de datos mucho mayores. También se puede entender el DL como una versión escalable del ML clásico \cite{ibm_cloud_education_2020}. El ML depende en gran medida de la intervención de un experto en el conjunto de datos capaz de extraer las características del mismo. Los métodos empleados en DL pueden aplicarse en conjuntos de datos etiquetados, de la misma forma que se aplicarían los métodos de ML, sin embargo, no es una condición necesaria. Los modelos DL pueden extraer conjuntos de características discriminatorias para elementos de distinta clase a partir de datos en bruto como texto o imágenes.
+
+\subsection{Redes neuronales}
+\label{sec:redes_neuronales}
+
+Las \textbf{redes neuronales} \cite{bishop1995neural}, también conocidas como redes neuronales artificiales (ANN), son un subcampo del ML y forman el núcleo del DL. Su nombre y su estructura toma inspiración del cebero humano. Se busca imitar la forma en que las neuronas biológicas interactúan entre sí.
+
+Las redes neuronales están formadas por capas de nodos: una capa de entrada, una o varias capas de nodos ocultas y una capa de salida. Cada neurona (o nodo) se conecta a las de la capa siguiente como puede verse en la Figura \ref{fig:redesneuronales}. Esta conexión tiene un peso y un umbral de activación asociado. Si el valor de salida de un nodo es superior al umbral de activación, la información se transmite hacia delante entre las capas de nodo. De lo contrario esta información no se transmite entre las capas. Los valores producidos como salida de una red neuronal pueden ser tanto valores continuos, binarios o categorías especificas en función de la tarea que se desee realizar.\\
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=\textwidth]{imagenes/RedesNeuronales.png}
+    \caption[Ejemplo de red neuronal superficial y profunda.]{Ejemplo de red neuronal superficial y profunda \cite{garcía_iñareta_j_o_2020}.}
+    \label{fig:redesneuronales}
+\end{figure}
+
+Cada conexión entre dos nodos tiene un peso asignado, de forma que se modela la \say{fuerza} de cada una de las señales de entrada a un nodo. El correcto ajuste de estos pesos será el que permitirá a la red neuronal aprender a realizar la tarea que debe llevar a cabo. Los datos introducidos a la capa de entrada que pueden verse en la Figura \ref{fig:neurona} se definen como variables independientes. Serán procesados por el siguiente nodo para propagar la información hacia delante en la red. Todas las variables independientes de la red corresponden a una única muestra del conjunto de datos disponible. La forma en la que los datos se procesan en los nodos es multiplicando las señales de entrada por el peso asignado a cada señal y combinando linealmente estas operaciones. Posteriormente a esta combinación lineal se le aplica una función de activación.\\
+
+Las funciones de activación son una parte fundamental de las redes neuronales, pues son las que introducen la no linealidad en el modelo y en última instancia, permiten a la red aprender. De aplicarse funciones de activación lineales, la red sería equivalente a una red sin capas ocultas. Las funciones de activación más comunes suelen ser la función threshold, la función sigmoide, la función rectificadora (ReLU) y la función tangente hiperbólica. Sin embargo existen más funciones de activación distintas a las mencionadas. La elección de una función de activación u otra esta motivada por el problema a resolver y por los resultados experimentales obtenidos.
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=\textwidth]{imagenes/Neurona_Completa.png}
+    \caption[Procesamiento de señal a nivel de nodo.]{Procesamiento de señal a nivel de nodo \cite{garcía_iñareta_j_o_2020}.}
+    \label{fig:neurona}
+\end{figure}
+
+Además de la función de activación, otra función imprescindible a la hora de hablar de redes neuronales es la función de pérdida o función de error. Ya hemos comentado que el objetivo de la red neuronal es ajustar los pesos asociados a sus conexiones de forma que el resultado final obtenido sea el resultado deseado. Para medir la diferencia entre el resultado obtenido y el resultado deseado establecemos una función de pérdida. El valor obtenido por esta función será utilizado para realizar un ajuste en los pesos del modelo en un proceso conocido como \say{backpropagation}. La información de la función de pérdida se transmite desde la última capa de la red hacia la capa inicial. De nuevo, la función de perdida utilizada dependerá del objetivo a desempeñar y de los resultados experimentales. Existen funciones específicas para regresión como la función error absoluto medio (MAE) y la función error cuadrático medio (MSE). También hay funciones específicas para tareas de clasificación como la función de entropía cruzada de categorías (Categorical CrossEntropy) o la función de entropía cruzada binaria (Binary CrossEntropy).\\
+
+El proceso iterativo de propagar la información de la capa de entrada a través de los nodos, procesar esta información mediante combinaciones lineales de las señales y la aplicación de funciones de activación, evaluar la función de pérdida y realizar backpropagation para ajustar los pesos del modelo se conoce como entrenamiento de una red neuronal. Según avanza este proceso iterativo, el objetivo de la red es minimizar el valor de la función de pérdida.\\
+
+Es importante tener en cuenta que una red neuronal puede sobreaprender los datos de entrada, incurriendo en un fenómeno conocido como \say{overfitting} (al igual que otros modelos dentro del campo del ML). El \say{overfitting} o sobreajuste se produce cuando la red neuronal es capaz de clasificar los datos de entrenamiento con una precisión muy alta, pero sin embargo al intentar clasificar nuevos datos diferentes a los de entrenamiento, la red no consigue generalizar correctamente y su desempeño es mucho menor. Para esto existen procesos de regularización que están diseñados para evitar que se produzca sobreajuste en el modelo.
+
+\subsection{Redes neuronales convolucionales}
+
+Las \textbf{convolutional neural networks} (CNN) o redes neuronales convolucionales \cite{lecun1989backpropagation,lecun1998gradient} son un tipo de algoritmo de DL, concretamente una subclase de las redes neuronales. Estas redes están diseñadas para trabajar con imágenes como dato de entrada\footnote{Generalmente es así, pero existen arquitecturas de CNN específicas para modelos 3D y otro tipo de datos.}. Son capaces de detectar las regiones características capaces de diferenciar las imágenes que reciben como input a partir de los pesos de la red. El preprocesado necesario en este tipo de redes es mucho menor que en el de otros modelos, ya que son capaces de aprender y desarrollar filtros capaces de detectar las características discriminatorias de una imagen.\\
+
+La arquitectura de este tipo de redes es análoga al patrón de conexión entre neuronas de las redes neuronales clásicas. Las CNN son capaces de capturar las dependencias temporales y espaciales presentes en una imagen mediante la aplicación de filtros relevantes que la red aprende en el proceso de entrenamiento. El objetivo de las CNN es reducir las imágenes de forma que se facilite el proceso de aprendizaje sin perder características discriminatorias de las mismas. Esto favorece a que este tipo de redes sean escalables a conjuntos de datos masivos.
+
+\subsubsection{Capa de convolución}
+
+El operador de \textbf{convolución} es la base de las CNN (ver Figura \ref{fig:conv}). Una convolución es un operador matemático que transforma dos funciones $f$ y $g$ en una tercera función que representa la magnitud en la que se superponen $f$ y una versión invertida y trasladada de $g$. En el caso de las CNN, estas funciones $f$ y $g$ se tratan de una imagen (I) y un kernel o filtro (K) respectivamente. El kernel se desplaza por la imagen calculando la convolución entre la sección de la imagen correspondiente y el kernel (ver Figura \ref{fig:kernelmov}). El kernel se desplaza hacia la derecha con determinado valor de salto (\say{stride}) hasta que se completa la primera fila. Después el kernel comienza a desplazarse de la misma manera por las siguientes filas comenzando desde la izquierda. Este proceso continua hasta que el kernel pasa por toda la imagen. En el caso de imágenes con más de un canal, el kernel tiene la misma profundidad que la imagen y el resultado de la convolución es una imagen con un único canal que se compone de la suma de la convolución de cada canal con el kernel.
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.5\textwidth]{imagenes/conv.png}
+    \caption[Operación de convolución.]{Operación de convolución \cite{saha_2018}.}
+    \label{fig:conv}
+\end{figure}
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.25\textwidth]{imagenes/KernelMovement.png}
+    \caption[Movimiento del kernel sobre la imagen.]{Movimiento del kernel sobre la imagen \cite{saha_2018}.}
+    \label{fig:kernelmov}
+\end{figure}
+
+El objetivo de la capa de convolución es extraer características de alto nivel presentes en la imagen. Generalmente la primera capa convolucional es responsable de extraer características de bajo nivel \cite{saha_2018} como colores, bordes, gradiente de orientación, etc. Según se van añadiendo capas de convolución, la arquitectura se adapta para extraer también características de alto nivel. Esta combinación de varias capas convolucionales, proporciona a la red un entendimiento completo de las imágenes del conjunto de datos.\\
+
+Hay dos posibles resultados tras aplicar la convolución a una imagen, esta puede o reducir sus dimensiones o mantener las mismas. Este resultado se controla mediante la aplicación de \say{\textbf{padding}} o rellenado. El padding consiste en aumentar las dimensiones de la imagen, introduciendo información redundante o rellenando el nuevo espacio con ceros, de forma que la imagen resultado de la convolución no pierda tamaño.
+
+\subsubsection{Capa de pooling}
+
+Al igual que la capa de convolución, la capa de \say{\textbf{pooling}} o agrupación se encarga de reducir la dimensión espacial de las convoluciones realizadas. La reducción de la dimensionalidad contribuye a reducir el coste computacional necesario para procesar los datos de entrada. Además la capa de pooling sirve para extraer las características dominantes que son invariantes a rotaciones y a la posición, manteniendo la efectividad en el proceso de entrenamiento de la red.\\
+
+Los dos tipos de pooling más utilizados son: \textbf{max pooling} (agrupación máxima) y \textbf{average pooling} (agrupación media). El max pooling consiste en conservar el valor máximo de la sección de la imagen cubierta por el kernel. Además aplicar max pooling contribuye a suprimir ruido presente en la imagen. Descarta las activaciones provocadas por ruido mientras produce una reducción de la dimensionalidad. El average pooling por otro lado, consiste en obtener la media de los valores de la sección de la imagen cubierta por el kernel. El average pooling suprime el ruido presente en la imagen simplemente consiguiendo una reducción de la dimensionalidad. Un ejemplo de ambos tipos de pooling puede verse en la Figura \ref{fig:pooling}.
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.5\textwidth]{imagenes/pooling2.png}
+    \caption[Tipos de pooling.]{Tipos de pooling \cite{yani2019application}.}
+    \label{fig:pooling}
+\end{figure}
+
+La composición de capas de convolución y pooling forman la base de las CNN. Aumentando y reduciendo su número, puede controlarse la extracción de características de mayor o menor nivel en función de la complejidad de la imagen de entrada. Sin embargo, un mayor número de capas conllevará un mayor coste computacional en el procesado de los datos.
+
+\subsubsection{Capa densa o totalmente conectada}
+
+Una vez terminado el proceso de aplicación de convolución y pooling, los datos procesados se reducen a un único vector de características que se utiliza como entrada para una red neuronal clásica que se encarga de realizar la clasificación, regresión o la tarea que se desee (ver Figura \ref{fig:fc}).
+Podemos entender las CNN como una red neuronal formada por dos bloques principales: uno de convolución y pooling, que actúa como extractor automático de características y otro bloque formado por una red neuronal clásica, que utiliza las características extraídas para cumplir con el objetivo de la red.\\
+
+En las CNN, las capas en las que los nodos están totalmente conectados, en una arquitectura análoga a una red neuronal clásica, se las conoce como capas \textbf{densas}, \textbf{totalmente conectadas} o \say{\textbf{fully connected}}. Esta es una forma sencilla de conseguir que el modelo aprenda combinaciones no lineales de las características obtenidas en las capas de convolución y pooling.\\
+
+% La salida de esta capas, es el resultado final de la CNN, que será evaluado por una función de perdida. En función del resultado de aplicar esta función, se llevará a cabo un proceso de backtracking que actualizará los pesos de las conexiones entre nodos así como los valores de los filtros utilizados en las convoluciones. El proceso de entrenamiento de una CNN es análogo al entrenamiento de una red neuronal clásica.
+La salida de esta capas, es el resultado final de la CNN, que será evaluado por una función de perdida. Se llevará a cabo un proceso de backpropagation que actualizará los pesos de las conexiones entre nodos así como los valores de los filtros utilizados en las convoluciones, con el objetivo de minimizar el valor de la función de pérdida utilizada. El proceso de entrenamiento de una CNN es análogo al entrenamiento de una red neuronal clásica.
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.75\textwidth]{imagenes/cnn.png}
+    \caption[Arquitectura de CNN.]{Arquitectura de CNN en la que pueden apreciarse las capas de convolución, pooling y totalmente conectada o densa \cite{saha_2018}.}
+    \label{fig:fc}
+\end{figure}
+
+\subsubsection{Batch normalization y dropout}
+Como hemos comentado en la sección \ref{sec:redes_neuronales}, durante el proceso de entrenamiento de una CNN puede producirse un fenómeno conocido como \say{overffiting}. Este fenómeno impide a la CNN generalizar correctamente la información aprendida, por lo que el desempeño de la red fuera de los datos de entrenamiento se reduce drásticamente. Para evitar el overfitting, existen estrategias que pueden aplicarse en las redes neuronales clásicas y en las CNN. Aquí nos centraremos en dos de ellas, batch normalization y dropout.\\
+
+El \textbf{batch normalization} (normalización de subconjunto) es un método algorítmico que permite que el entrenamiento de la CNN sea más rápido y más estable. En la práctica consiste en una capa que se encarga de normalizar los vectores de activación de las capas ocultas de la red. Para esto utiliza la media y la varianza de cada \say{batch} de datos. El concepto de batch en las CNN hace referencia al número de datos que se introducen a la red antes de que se produzca el proceso de backpropagation y la actualización de los pesos de la red. Batch normalization tiene un efecto regularizador en la red, por lo que contribuye a prevenir el overfitting.\\
+
+El \textbf{dropout} (abandono) es una técnica de regularización en redes neuronales. Consiste en \say{apagar} nodos aleatorios (tanto de las capas ocultas como de las visibles) durante el proceso de entrenamiento (ver Figura \ref{fig:dropout}). Esto se consigue omitiendo el valor de los nodos en función de una probabilidad concreta. La aplicación del dropout consigue que la red entrenada sea más robusta \cite{nelson_2018}, ya que permite que la red aprenda correctamente evitando la posibilidad de que varios nodos compensen los errores de otros en el proceso de entrenamiento.
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.75\textwidth]{imagenes/dropout.png}
+    \caption[Ejemplo de aplicación de dropout.]{Ejemplo de aplicación de dropout. \textbf{Izquierda}: Red completa. \textbf{Derecha}: Red tras la aplicación de dropout \cite{budhiraja_2018}.}
+    \label{fig:dropout}
+\end{figure}
+
+\section{Tipos de representación de datos en 3D}
+\label{sec:datos3d}
+
+La aplicación de técnicas de DL en visión por computador ha estado generalmente dirigida al uso de datos 2D. En este campo se han obtenido numerosos resultados en tareas de clasificación, reconocimiento, segmentación, etc. La principal ventaja de los modelos DL es su capacidad para aprender progresivamente características jerárquicas de los datos proporcionados como entrada \cite{krizhevsky2012imagenet}. Sin embargo estos modelos requieren una gran cantidad de datos para su entrenamiento. Debido a esto, el uso de modelos DL en datos 3D ha estado limitado. En los últimos años, debido al avance de la tecnología en escaneo 3D, al abaratamiento y mejor accesibilidad de la misma, la cantidad de datos 3D disponibles para entrenamiento ha aumentado notablemente. Ejemplos como la popularidad del Kinect o el desarrollo de los sensores LIDAR han contribuido a eso.
+\\
+
+Los algoritmos utilizados en modelos DL orientados a datos 3D deben afrontar principalmente dos desafíos: la representación de estos modelos 3D y la estructura de red utilizada. En esta sección abordaremos el primero de estos desafíos analizando las representaciones existentes de datos 3D, sus ventajas y desventajas y su posible aplicación en la estimación del PB.
+\\
+
+Según la literatura consultada, existen varias formas de categorizar los tipos de datos 3D. Gezawa et al. \cite{gezawa2020review} distinguen en su estudio 5 grandes categorías: datos en bruto, superficies, solidos, estructuras de alto nivel y múltiples vistas. Esta distinción se basa en la forma de adquisición de los datos y la estructura interna de los mismos. Por otro lado Ahmed et al. \cite{ahmed2018survey} dividen los tipos de datos 3D en euclideanos y no euclideanos. Los datos euclideanos cuentan con una estructura de \say{rejilla} subyacente que permite una parametrización global de los datos y establecer un sistema de coordenadas común. Los datos no euclideanos no cuentan con esta estructura subyacente, por lo que no existe parametrización global. En la Tabla \ref{tab:comparativa} vemos un representación esquemática de estas categorías y las diferentes formas de representar los datos 3D que pertenecen a cada una de ellas.
+\\
+
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+% \usepackage[table,xcdraw]{xcolor}
+% If you use beamer only pass "xcolor=table" option, i.e. \documentclass[xcolor=table]{beamer}
+\begin{table}[ht!]
+\centering
+\begin{tabular}{c|c|l|}
+\cline{2-3}
+\multicolumn{1}{l|}{}                                                                               & \textbf{Euclideano}                           & \multicolumn{1}{c|}{\textbf{No Euclideano}} \\ \hline
+\multicolumn{1}{|c|}{}                                                                              & RGB-D \cite{rgbd}                                        & \multicolumn{1}{c|}{Nubes de puntos \cite{memoli2005theoretical}}        \\ \cline{2-3} 
+\multicolumn{1}{|c|}{\multirow{-2}{*}{\textbf{Datos en bruto}}}                                     & Proyecciones 3D \cite{projecciones3D}                              & \cellcolor[HTML]{C0C0C0}                    \\ \hline
+\multicolumn{1}{|c|}{}                                                                              & Octrees \cite{voxelsoctrees}                                      & \cellcolor[HTML]{C0C0C0}                    \\ \cline{2-3} 
+\multicolumn{1}{|c|}{\multirow{-2}{*}{\textbf{Sólidos}}}                                            & Vóxeles \cite{voxelsoctrees}                                      & \cellcolor[HTML]{C0C0C0}                    \\ \hline
+\multicolumn{1}{|c|}{\textbf{Superficies}}                                                          & \multicolumn{1}{l|}{\cellcolor[HTML]{C0C0C0}} & \multicolumn{1}{c|}{Malla 3D \cite{bronstein2021geometric}}               \\ \hline
+\multicolumn{1}{|c|}{\textbf{\begin{tabular}[c]{@{}c@{}}Estructuras de \\ alto nivel\end{tabular}}} & Descriptores 3D \cite{descriptors3D}                              & \multicolumn{1}{c|}{Grafos \cite{bronstein2021geometric}}                 \\ \hline
+\multicolumn{1}{|c|}{\textbf{\begin{tabular}[c]{@{}c@{}}Datos de \\ múltiples vistas\end{tabular}}} & Múltiples vistas \cite{multiview}                             & \cellcolor[HTML]{C0C0C0}                    \\ \hline
+\end{tabular}
+\caption{Diferentes clasificaciones para los distintos tipos de datos 3D.}
+\label{tab:comparativa}
+\end{table}
+
+\subsection{Datos en bruto}
+Dentro de la categoría de datos en bruto se agrupan representaciones que utilizan datos directamente obtenidos del positivo de captura obtenido, aplicando transformaciones simples o directamente no aplicando ninguna transformación. Podemos encontrar los datos RGB-D, las proyecciones 3D y las nubes de puntos. %Los dos primeros presentan una estructura euclideana mientras que las nubes de puntos son más complicadas de clasificar.
+
+\subsubsection{Datos RGB-D}
+Los datos RGB-D representan la información de los datos en 2.5 dimensiones. Están formados por una imagen clásica de 2 dimensiones (RGB) a la que se añade un mapa de profundidad (D) que aporta el valor de profundidad captado por el sensor para cada píxel. Es una representación simple pero efectiva. 
+\\
+
+La principal ventaja de esta representación es la sencillez en su obtención (ya que los dispositivos utilizados, como Kinect, tienen gran disponibilidad) y su facilidad de aplicación a modelos DL preparados para 2D existentes. Su principal desventaja es que, dado que la representación RGB-D no contiene la totalidad de la geometría del objeto 3D, los modelos utilizados no podrán aprender la geometría completa de dicho objeto, por lo que solo se podrán inferir algunas propiedades 3D en base a la profundidad. Esto ha motivado a los investigadores a explorar otras técnicas de representación de datos. 
+
+\subsubsection{Proyecciones 3D}
+Proyectar puntos 3D en un espacio 2D es otra forma de representar de datos 3D. La proyección encapsula información clave del objeto 3D original. Comúnmente las proyecciones más utilizadas son las proyección cilíndricas y esféricas. Estas últimas poseen la ventaja de proporcionar invarianza a la rotación en el eje principal de la proyección. 
+\\
+
+Su principal ventaja es que dado que la proyección contiene información clave del objeto 3D original, es posible utilizar modelos de DL clásicos para trabajar con datos 3D. La principales desventajas son que la aplicación directa de esta representación en modelos DL en 2D requiere un mayor ajuste fino y que al proyectar datos 3D en un espacio 2D las propiedades geométricas de la forma del objeto 3D original se pierden. Por esto, muchos investigadores han tratado de utilizar varias proyecciones en conjunto o combinar esta representación con otras para compensar esta falta de información. Pese a sus desventajas, la utilización de este tipo de representación 3D en modelos DL ha probado ser eficaz a la hora de aprender formas 3D. 
+
+\subsubsection{Nubes de puntos}
+Una nube de puntos no es más que un conjunto no estructurado de puntos 3D que aproximan la geometría de objetos 3D en el que cada punto esta representado por tres coordenadas. Aunque las nubes de puntos pueden obtenerse fácilmente (utilizando dispositivos cono Kinect o sensores LIDAR) su procesamiento puede ser un desafío debido a la falta de información de conectividad entre los puntos que forman la nube. También puede darse el caso en que debido a las condiciones de adquisición de los datos, ciertos puntos no se representen correctamente, las nubes representen información incompleta o se introduzca ruido en los datos, provocando pérdidas de información.
+\\
+
+Si podemos pasar por alto estos inconvenientes, las nubes de puntos presentan varias ventajas. Estas proveen una representación expresiva, homogénea y compacta de la geometría de la superficie 3D con mucha menor complejidad respecto a otras representaciones como mallas 3D o grafos. Su principal desventaja a la hora de procesar los datos es la estructura desordenada y no uniforme que presentan, debido a los errores derivados de la adquisición de los datos. Esto ha llevado a los investigadores a desarrollar métodos de aprendizaje que sean invariantes al orden de los puntos dentro de la nube.
+
+\subsection{Sólidos}
+En esta categoría encontramos representaciones de los datos 3D que simplemente proporcionan información de control del espacio ocupado por un objeto determinado. Generalmente dicha información es binaria, lo que significa que un punto del espacio puede estar ocupado o no. Dentro de esta categoría encontramos representaciones con vóxeles y octrees.
+
+\subsubsection{Vóxeles}
+Los vóxeles modelan los datos 3D describiendo como el objeto 3D se distribuye en el espacio tridimensional. La información que proporciona el punto de vista también puede ser codificada clasificando los vóxeles ocupados en visibles u ocluidos.
+\\
+
+La principal ventaja es que proporciona información volumétrica de la totalidad del objeto 3D que se representa. Sin embargo, esta representación presenta una gran desventaja: requiere una enorme cantidad de memoria, ya que se deben almacenar todos los vóxeles independientemente de si son visibles o no. Por esto, la representación en vóxeles no es adecuada para representar objetos 3D con resoluciones altas. Cuanto mayor sea la resolución, mayor será el almacenamiento necesario.
+
+\subsubsection{Octrees}
+Como una forma más eficiente de representación de la información volumétrica de objetos 3D, surgen los octrees (arboles octales). Un octree es simplemente una estructura de representación de información espacial basada en vóxeles de tamaño variable. Los octrees se construyen como árboles de los que cada nodo cuelgan ocho nodos diferentes \cite{tatarchenko2017octree} que dividen el espacio 3D en cubos que pueden estar tanto dentro como fuera del objeto.
+\\
+
+Sus principales ventajas son la eficiencia en la utilización de la memoria y su capacidad para generar vóxeles de alta resolución \cite{riegler2017octnet}. Por otro lado, su principal desventaja es que presenta una incapacidad para mantener la geometría de algunos objetos 3D como la suavidad de la superficie, por ejemplo.
+
+\subsection{Superficies}
+Las superficies de polígonos se suelen utilizar en la representación de los límites de los objetos 3D que rodean la parte interior del objeto. El conjunto de estos polígonos suele almacenarse para la descripción
+del objeto, lo que tiene la ventaja de la simplicidad y la rapidez de la representación de la superficie y de la visualización del objeto dado que todas superficies se pueden caracterizar con ecuaciones lineales. Dentro de esta categoría solo encontramos las mallas 3D.
+
+\subsubsection{Mallas 3D}
+Las mallas 3D son una de las representaciones más populares de objetos 3D. Consisten en una combinación de vértices, aristas y caras que se utilizan generalmente se utilizan gráficos por ordenador para renderizado y almacenamiento de modelos 3D. Los vértices se asocian con una lista de conectividad que describen como estos se interconectan entre ellos. La complejidad e irregularidad de estas mallas provocan que no hayan sido utilizadas con técnicas DL orientadas a modelos 3D hasta ahora.
+\\
+
+Su principal ventaja es que se trata de una de las representaciones de datos 3D más importantes y potentes dentro de su campo. Esto ha propiciado su amplio uso dentro del campo de los gráficos por ordenador. Su principal desventaja es la ya comentada complejidad e irregularidad de las mallas 3D. El estudio de la aplicación de estas mallas al campo del DL continua avanzando a día de hoy, por lo que los modelos actuales son bastante recientes además de computacionalmente costosos.
+
+\subsection{Estructuras de alto nivel}
+En problemas de clasificación de objetos 3D, a veces es necesaria una representación concisa y detallada. Dentro de las estructuras de alto nivel, podemos encontrar descriptores 3D de alto nivel y grafos.
+
+\subsubsection{Descriptores 3D}
+Los descriptores de forma son representaciones simplificadas de objetos 3D que describen características geométricas o topológicas de los mismo. Estos descriptores pueden obtenerse a partir de elementos del objeto 3D tales como la geometría, topología, superficie, textura o cualquier otra, siendo posible también utilizar una combinación de todas ellas \cite{zhang2007survey,kazmi2013survey}. Un descriptor de forma puede entender como una \say{firma} de la forma del objeto 3D para facilitar el procesamiento y computación así como facilitar la comparación entre diferentes objetos. 
+Estos descriptores normalmente se combinan con un modelo basado en el aprendizaje para extraer características jerárquicas discriminatorias para representar el objeto 3D de mejor forma.
+Los descriptores 3D se clasifican en 2 categorías: descriptores locales y globales. Los descriptores globales proporcionan información del objeto 3D en su totalidad, mientras que los locales proveen una representación de una zona concreta del modelo.
+\\
+
+Como principales ventajas encontramos que los descriptores 3D pueden codificar mucha información relativa a un modelo 3D de forma simple. Por esto han sido ampliamente utilizamos en el campo del DL. Sin embargo, su principal desventaja es que un descriptor demasiado simple puede conllevar una pérdida de las propiedades del modelo que esta representando.
+\\
+
+Además revisando la literatura, la mayoría de aplicaciones de los descriptores 3D se centran en el paradigma del aprendizaje no supervisado. Esto se debe a que los modelos de aprendizaje supervisado aprenden abstracciones jerárquicas de los datos en bruto. Dado que los descriptores 3D son en si mismos una abstracción, su aplicación en modelos de aprendizaje supervisado podría derivar en no obtener características representativas. El proceso de aprendizaje de abstracciones a partir de abstracciones puede llevar a una pérdida de las propiedades actuales de los modelos 3D representados si el descriptor 3D utilizado es demasiado simple o abstracto. Sin embargo  en algunos casos, los descriptores pueden proveer información lo suficientemente completa como para que la operación de convolución pueda aprender características jerárquicas de los datos de entrada \cite{han2016mesh}.
+
+\subsubsection{Grafos}
+La representación por grafos de un objeto 3D recoge la esencia de la geometría del objeto enlazando diferentes partes del modelo mediante un grafo. Las mallas 3D son extensiones de datos estructurados en forma de grafos, en los que los nodos del grafo se utilizan como los vértices de la malla y las aristas representan las conexiones entre los vértices \cite{fey2018splinecnn}. Los primeros acercamientos a redes neuronales convoluciones para grafos, Graph Convolutional Neural Networks (GNN), aplican principalmente dos operadores de convolución distintos: métodos de filtrado espectral y métodos de filtrado espacial. Aunque ambos métodos son equivalentes aunque se fundamentan en principios matemáticos diferentes, por lo que presentan varias diferencias.\\
+
+Los métodos de filtrado espectral se fundamentan en la descomposición en vectores y valores propios de la matriz laplaciana de un grafo \cite{flawnsontong2019}. Esto se conoce como descomposición espectral de un grafo \cite{hammond2011wavelets}. Esta descomposición se utiliza para definir un operador de convolución. Los métodos de filtrado espectral son robustos, fiables y tienen un amplio recorrido en la bibliografía. Sin embargo son métodos matemáticos complejos que conllevan costes computacionales más elevados. Además son dependientes de la base del grafo utilizado lo que hace que la generalización de estos modelos sea aún objeto de estudio.\\
+
+Por otra parte, los métodos de filtrado espacial se basan en que dentro de un modelo de GNN, el aprendizaje de las características que definen a un grafo depende del vecindario de cada vértice. De forma análoga a las CNN clásicas, un función no lineal se aplica a todos los nodos del grafo. La elección de esta varía en función de la tarea. Los métodos de filtrado espacial son menos complejos que los de filtrado espectral, pero no por ello menos potentes. La principal diferencia radica en que los métodos espaciales combinan los vectores de características de los vecindarios de vértices basándose en la topología del grafo y considerando su estructura espacial.
+
+
+\subsection{Datos de múltiples vistas}
+Los datos 3D pueden representarse como una combinación de múltiples imágenes 2D generadas como diferentes puntos de vista del objeto 3D \cite{zhao2017multi}. 
+\\
+
+Esta representación permite el aprendizaje de múltiples conjuntos de características para reducir posibles efectos de ruido, oclusión, estado incompleto de los datos y cambios de iluminación generados por el proceso de captura de los datos. Además, permite trabajar con entradas de alta resolución, pues pueden aplicarse modelos DL basados en imágenes 2D. El aprendizaje de datos 3D a partir de múltiples imágenes 2D del objeto, aspira a aprender una función capaz de modelar cada vista por separado para después optimizar conjuntamente todas las funciones aprendidas de forma que pueda representarse el objeto 3D en su totalidad además de generalizar la representación de otros objetos 3D. Sin embargo, su mayor inconveniente es establecer el número de vistas suficientes para representar el objeto 3D. Un número de vistas demasiado bajo puede producir que no se capturen las propiedades del objeto 3D en su totalidad y además podría conllevar un problema de overfitting. Por otro lado, un número de vistas muy elevado podría incrementar innecesariamente el coste computacional. Además el uso de este tipo de representación no es capaz de preservar las características geométricas intrínsecas de los modelos 3D.\\
+
+A modo de resumen, en la Figura \ref{fig:rep3D} vemos varios ejemplos de las diferentes formas de representación de los datos 3D presentadas en esta sección.
+
+\newpage
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=\textwidth]{imagenes/Representaciones3D.png}
+    \caption[Diferentes formas de representación de los datos 3D.]{Diferentes formas de representación de los datos 3D \cite{gezawa2020review}.}
+    \label{fig:rep3D}
+\end{figure}

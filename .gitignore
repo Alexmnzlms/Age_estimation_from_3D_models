@@ -24,3 +24,10 @@ sys
 src/prueba.py 
 src/calculate_LDS.py
 src/preprocesor.py
+resultados_TFG
+*.json
+paper_execution
+*.out
+prueba
+__pycache__
+*.log

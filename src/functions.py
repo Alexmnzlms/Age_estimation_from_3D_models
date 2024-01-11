@@ -143,7 +143,7 @@ def read_images_gen(images, dir, img_shape, datagen, colormode, image_cache):
         X = np.zeros((len(images), img_shape[0], img_shape[1], 3))
 
     for i, image_name in enumerate(images):
-        image = cached_img_read(dir+image_name, img_shape, colormode, image_cache)
+        image = cached_img_read(os.path.join(dir, image_name), img_shape, colormode, image_cache)
         image = datagen.standardize(image)
         X[i] = image
 
@@ -173,13 +173,13 @@ def image_generator(images, dir, batch_size, datagen, img_shape=(108,108), color
             else:
                 yield ([img1, img2, img3], label)
 
-def load_image_normalize_grayscale(images,dir,img_shape,fit_data = True,list_values = []):
+def load_image_normalize_grayscale(images,dir,img_shape,outdir,fit_data = True,list_values = []):
     if fit_data:
         img_mean = []
         img_std = []
         for img in images:
             for i in img[:3]:
-                image = img_to_array(load_img(dir+i, color_mode='grayscale', target_size=img_shape, interpolation='bilinear')).astype(np.float32) / 255.0
+                image = img_to_array(load_img(os.path.join(dir,i), color_mode='grayscale', target_size=img_shape, interpolation='bilinear')).astype(np.float32) / 255.0
                 img_mean.append(np.mean(image))
                 img_std.append(np.std(image))
 
@@ -201,19 +201,21 @@ def load_image_normalize_grayscale(images,dir,img_shape,fit_data = True,list_val
 
     for img in images:
         for i in img[:3]:
-            image = img_to_array(load_img(dir+i, color_mode='grayscale', target_size=img_shape, interpolation='bilinear')).astype(np.float32) / 255.0
+            image = img_to_array(load_img(os.path.join(dir,i), color_mode='grayscale', target_size=img_shape, interpolation='bilinear')).astype(np.float32) / 255.0
 
             image = (image - img_channel) / img_std
 
             means.append(np.mean(image))
             stds.append(np.std(image))
 
-            cv.imwrite('./data_img_norm/'+i,image)
+            if not os.path.exists(os.path.dirname(os.path.join(outdir,i))):
+                os.makedirs(os.path.dirname(os.path.join(outdir,i)))
+            cv.imwrite(os.path.join(outdir,i),image)
 
     print('Media final', np.mean(means), np.mean(stds))
     return [img_mean, img_std]
 
-def load_image_normalize_rgb(images,dir,img_shape,fit_data = True,list_values = []):
+def load_image_normalize_rgb(images,dir,img_shape,outdir,fit_data = True,list_values = []):
     if fit_data:
         r_mean = []
         g_mean = []
@@ -223,7 +225,7 @@ def load_image_normalize_rgb(images,dir,img_shape,fit_data = True,list_values = 
         b_std = []
         for img in images:
             for i in img[:3]:
-                image = img_to_array(load_img(dir+i, color_mode='rgb', target_size=img_shape, interpolation='bilinear')).astype(np.float32) / 255.0
+                image = img_to_array(load_img(os.path.join(dir,i), color_mode='rgb', target_size=img_shape, interpolation='bilinear')).astype(np.float32) / 255.0
                 r, g, b = np.split(image,3,axis=2)
                 r_mean.append(np.mean(r))
                 g_mean.append(np.mean(g))
@@ -262,7 +264,7 @@ def load_image_normalize_rgb(images,dir,img_shape,fit_data = True,list_values = 
 
     for img in images:
         for i in img[:3]:
-            image = img_to_array(load_img(dir+i, color_mode='rgb', target_size=img_shape, interpolation='bilinear')).astype(np.float32) / 255.0
+            image = img_to_array(load_img(os.path.join(dir,i), color_mode='rgb', target_size=img_shape, interpolation='bilinear')).astype(np.float32) / 255.0
 
             r, g, b = np.split(image,3,axis=2)
             r = (r - r_channel) / r_std
@@ -275,7 +277,10 @@ def load_image_normalize_rgb(images,dir,img_shape,fit_data = True,list_values = 
             means.append(np.mean(image))
             stds.append(np.std(image))
 
-            cv.imwrite('./data_img_norm/'+i,image)
+            if not os.path.exists(os.path.dirname(os.path.join(outdir,i))):
+                os.makedirs(os.path.dirname(os.path.join(outdir,i)))
+            
+            cv.imwrite(os.path.join(outdir,i),image)
 
     print('Media final', np.mean(means), np.mean(stds))
     return [r_mean,r_std,g_mean,g_std,b_mean,b_std]
@@ -400,18 +405,18 @@ def precision_by_range(y_true, y_pred, ranges, metric='mae'):
     df_precision['Values 50%'] = [np.percentile(np.array(prec_dic_filter[k][1]),50) for k in prec_dic_filter.keys()]
     df_precision['Values 75%'] = [np.percentile(np.array(prec_dic_filter[k][1]),75) for k in prec_dic_filter.keys()]
     df_precision['Values 99%'] = [np.percentile(np.array(prec_dic_filter[k][1]),99) for k in prec_dic_filter.keys()]
-    df_precision[metric_name+' Mean'] = [np.mean(np.array(prec_dic_filter[k][0])) for k in prec_dic_filter.keys()]
+    df_precision[metric_name] = [np.mean(np.array(prec_dic_filter[k][0])) for k in prec_dic_filter.keys()]
     df_precision[metric_name+' Std'] = [np.std(np.array(prec_dic_filter[k][0])) for k in prec_dic_filter.keys()]
-    df_precision[metric_name+' 1%'] = [np.percentile(np.array(prec_dic_filter[k][0]),1) for k in prec_dic_filter.keys()]
-    df_precision[metric_name+' 10%'] = [np.percentile(np.array(prec_dic_filter[k][0]),10) for k in prec_dic_filter.keys()]
-    df_precision[metric_name+' 25%'] = [np.percentile(np.array(prec_dic_filter[k][0]),25) for k in prec_dic_filter.keys()]
-    df_precision[metric_name+' 50%'] = [np.percentile(np.array(prec_dic_filter[k][0]),50) for k in prec_dic_filter.keys()]
-    df_precision[metric_name+' 75%'] = [np.percentile(np.array(prec_dic_filter[k][0]),75) for k in prec_dic_filter.keys()]
-    df_precision[metric_name+' 99%'] = [np.percentile(np.array(prec_dic_filter[k][0]),99) for k in prec_dic_filter.keys()]
+    df_precision['Error 1%'] = [np.percentile(np.array(prec_dic_filter[k][0]),1) for k in prec_dic_filter.keys()]
+    df_precision['Error 10%'] = [np.percentile(np.array(prec_dic_filter[k][0]),10) for k in prec_dic_filter.keys()]
+    df_precision['Error 25%'] = [np.percentile(np.array(prec_dic_filter[k][0]),25) for k in prec_dic_filter.keys()]
+    df_precision['Error 50%'] = [np.percentile(np.array(prec_dic_filter[k][0]),50) for k in prec_dic_filter.keys()]
+    df_precision['Error 75%'] = [np.percentile(np.array(prec_dic_filter[k][0]),75) for k in prec_dic_filter.keys()]
+    df_precision['Error 99%'] = [np.percentile(np.array(prec_dic_filter[k][0]),99) for k in prec_dic_filter.keys()]
 
     return df_precision
 
-def show_stats(true,pred,metric_range='mae'):
+def show_stats(true, pred, metric_range='mae'):
     stats_mae = abs(true-pred)
     stats_mse = (true-pred)*(true-pred)
     measures = [stats_mae, stats_mse]
@@ -430,12 +435,18 @@ def show_stats(true,pred,metric_range='mae'):
     df_stats['Max value:'] = [np.max(m) for m in measures]
 
     ranges = [roa.ranges_todd,roa.ranges_5,roa.ranges_3]
+    df_precision_complete_list = []
     for range in ranges:
         df_precision = precision_by_range(true, pred, range, metric_range)
         if metric_range == 'mae':
-            print('Mean of means:', np.mean(df_precision['MAE Mean'].to_numpy()))
+            print('Mean of means:', np.mean(df_precision['MAE'].to_numpy()))
         elif metric_range == 'mse':
-            print('Mean of means:', np.mean(df_precision['MSE Mean'].to_numpy()))
+            print('Mean of means:', np.mean(df_precision['MSE'].to_numpy()))
         print(df_precision.to_string())
+        df_precision_complete_list.append(df_precision)
 
+    
+    df_precision_complete = pd.concat(df_precision_complete_list)
     print(df_stats.to_string())
+
+    return df_stats, df_precision_complete

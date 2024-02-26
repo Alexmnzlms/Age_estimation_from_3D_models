@@ -31,3 +31,9 @@ paper_execution
 prueba
 __pycache__
 *.log
+*.old
+*.pkl
+*.obj
+*.png
+*.rar
+*modelos_entrenados*

@@ -98,7 +98,8 @@ def main(test_path, data_path, color_mode, img_shape, depth, cnn, verbose_level,
             "Y AXIS": prediction_not_augment_split[1].flatten(),
             "Z AXIS": prediction_not_augment_split[2].flatten(),
             "AXIS AVERAGE": np.mean([ prediction.flatten() for prediction in prediction_not_augment_split ], axis = 0),
-            "COMBINED OUTPUT": pred
+            "COMBINED OUTPUT": pred,
+            "ERROR": true-pred
         }
 
         dataframe = pd.DataFrame.from_dict(prediction_dict)

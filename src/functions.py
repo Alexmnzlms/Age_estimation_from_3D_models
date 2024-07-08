@@ -36,6 +36,8 @@ import ranges_of_age as roa
 
 import sys
 
+import math
+
 from datetime import datetime
 
 def create_CNN(n, width, height, depth, summary = False):
@@ -382,6 +384,9 @@ def precision_by_range(y_true, y_pred, ranges, metric='mae'):
         elif metric == 'mse':
             dif = (yt - yp) * (yt - yp)
             metric_name = 'MSE'
+        elif metric == 'rmse':
+            dif = (yt - yp) * (yt - yp)
+            metric_name = 'RMSE'
         prec_dic[r_age][0].append(dif)
         prec_dic[r_age][1].append(yp)
         prec_dic[r_age][2].append(yt)
@@ -396,43 +401,46 @@ def precision_by_range(y_true, y_pred, ranges, metric='mae'):
     df_precision['Range'] = [ranges[k] for k in prec_dic_filter.keys()]
     df_precision['N values'] = [len(np.array(prec_dic_filter[k][1])) for k in prec_dic_filter.keys()]
     df_precision['T values Mean'] = [np.mean(np.array(prec_dic_filter[k][2])) for k in prec_dic_filter.keys()]
-    df_precision['T values std'] = [np.std(np.array(prec_dic_filter[k][2])) for k in prec_dic_filter.keys()]
+    # df_precision['T values std'] = [np.std(np.array(prec_dic_filter[k][2])) for k in prec_dic_filter.keys()]
     df_precision['Values Mean'] = [np.mean(np.array(prec_dic_filter[k][1])) for k in prec_dic_filter.keys()]
-    df_precision['Values std'] = [np.std(np.array(prec_dic_filter[k][1])) for k in prec_dic_filter.keys()]
-    df_precision['Values 1%'] = [np.percentile(np.array(prec_dic_filter[k][1]),1) for k in prec_dic_filter.keys()]
-    df_precision['Values 10%'] = [np.percentile(np.array(prec_dic_filter[k][1]),10) for k in prec_dic_filter.keys()]
-    df_precision['Values 25%'] = [np.percentile(np.array(prec_dic_filter[k][1]),25) for k in prec_dic_filter.keys()]
-    df_precision['Values 50%'] = [np.percentile(np.array(prec_dic_filter[k][1]),50) for k in prec_dic_filter.keys()]
-    df_precision['Values 75%'] = [np.percentile(np.array(prec_dic_filter[k][1]),75) for k in prec_dic_filter.keys()]
-    df_precision['Values 99%'] = [np.percentile(np.array(prec_dic_filter[k][1]),99) for k in prec_dic_filter.keys()]
-    df_precision[metric_name] = [np.mean(np.array(prec_dic_filter[k][0])) for k in prec_dic_filter.keys()]
-    df_precision[metric_name+' Std'] = [np.std(np.array(prec_dic_filter[k][0])) for k in prec_dic_filter.keys()]
-    df_precision['Error 1%'] = [np.percentile(np.array(prec_dic_filter[k][0]),1) for k in prec_dic_filter.keys()]
-    df_precision['Error 10%'] = [np.percentile(np.array(prec_dic_filter[k][0]),10) for k in prec_dic_filter.keys()]
-    df_precision['Error 25%'] = [np.percentile(np.array(prec_dic_filter[k][0]),25) for k in prec_dic_filter.keys()]
-    df_precision['Error 50%'] = [np.percentile(np.array(prec_dic_filter[k][0]),50) for k in prec_dic_filter.keys()]
-    df_precision['Error 75%'] = [np.percentile(np.array(prec_dic_filter[k][0]),75) for k in prec_dic_filter.keys()]
-    df_precision['Error 99%'] = [np.percentile(np.array(prec_dic_filter[k][0]),99) for k in prec_dic_filter.keys()]
+    # df_precision['Values std'] = [np.std(np.array(prec_dic_filter[k][1])) for k in prec_dic_filter.keys()]
+    # df_precision['Values 1%'] = [np.percentile(np.array(prec_dic_filter[k][1]),1) for k in prec_dic_filter.keys()]
+    # df_precision['Values 10%'] = [np.percentile(np.array(prec_dic_filter[k][1]),10) for k in prec_dic_filter.keys()]
+    # df_precision['Values 25%'] = [np.percentile(np.array(prec_dic_filter[k][1]),25) for k in prec_dic_filter.keys()]
+    # df_precision['Values 50%'] = [np.percentile(np.array(prec_dic_filter[k][1]),50) for k in prec_dic_filter.keys()]
+    # df_precision['Values 75%'] = [np.percentile(np.array(prec_dic_filter[k][1]),75) for k in prec_dic_filter.keys()]
+    # df_precision['Values 99%'] = [np.percentile(np.array(prec_dic_filter[k][1]),99) for k in prec_dic_filter.keys()]
+    if metric_name == "RMSE":
+        df_precision[metric_name] = [np.sqrt(np.mean(np.array(prec_dic_filter[k][0]))) for k in prec_dic_filter.keys()]
+    else:
+        df_precision[metric_name] = [np.mean(np.array(prec_dic_filter[k][0])) for k in prec_dic_filter.keys()]
+    # df_precision[metric_name+' Std'] = [np.std(np.array(prec_dic_filter[k][0])) for k in prec_dic_filter.keys()]
+    # df_precision['Error 1%'] = [np.percentile(np.array(prec_dic_filter[k][0]),1) for k in prec_dic_filter.keys()]
+    # df_precision['Error 10%'] = [np.percentile(np.array(prec_dic_filter[k][0]),10) for k in prec_dic_filter.keys()]
+    # df_precision['Error 25%'] = [np.percentile(np.array(prec_dic_filter[k][0]),25) for k in prec_dic_filter.keys()]
+    # df_precision['Error 50%'] = [np.percentile(np.array(prec_dic_filter[k][0]),50) for k in prec_dic_filter.keys()]
+    # df_precision['Error 75%'] = [np.percentile(np.array(prec_dic_filter[k][0]),75) for k in prec_dic_filter.keys()]
+    # df_precision['Error 99%'] = [np.percentile(np.array(prec_dic_filter[k][0]),99) for k in prec_dic_filter.keys()]
 
     return df_precision
 
 def show_stats(true, pred, metric_range='mae'):
     stats_mae = abs(true-pred)
     stats_mse = (true-pred)*(true-pred)
-    measures = [stats_mae, stats_mse]
+    measures = [stats_mae, stats_mse, stats_mse]
 
     df_stats = pd.DataFrame()
-    df_stats['Metric'] = ['MAE' ,'MSE']
-    df_stats['Mean:'] = [np.mean(m) for m in measures]
-    df_stats['Std:'] = [np.std(m) for m in measures]
-    df_stats['1% value:'] = [np.percentile(m,1) for m in measures]
-    df_stats['10% value:'] = [np.percentile(m,10) for m in measures]
-    df_stats['25% value:'] = [np.percentile(m,25) for m in measures]
-    df_stats['50% value:'] = [np.median(m) for m in measures]
-    df_stats['75% value:'] = [np.percentile(m,75) for m in measures]
-    df_stats['99% value:'] = [np.percentile(m,99) for m in measures]
-    df_stats['Min value:'] = [np.min(m) for m in measures]
-    df_stats['Max value:'] = [np.max(m) for m in measures]
+    df_stats['Metric'] = ['MAE' ,'MSE', 'RMSE']
+    df_stats['Mean:'] = [np.mean(stats_mae), np.mean(stats_mse), np.sqrt(np.mean(stats_mse))]
+    # df_stats['Std:'] = [np.std(m) for m in measures]
+    # df_stats['1% value:'] = [np.percentile(m,1) for m in measures]
+    # df_stats['10% value:'] = [np.percentile(m,10) for m in measures]
+    # df_stats['25% value:'] = [np.percentile(m,25) for m in measures]
+    # df_stats['50% value:'] = [np.median(m) for m in measures]
+    # df_stats['75% value:'] = [np.percentile(m,75) for m in measures]
+    # df_stats['99% value:'] = [np.percentile(m,99) for m in measures]
+    # df_stats['Min value:'] = [np.min(m) for m in measures]
+    # df_stats['Max value:'] = [np.max(m) for m in measures]
 
     ranges = [roa.ranges_todd,roa.ranges_5,roa.ranges_3]
     df_precision_complete_list = []
@@ -442,6 +450,8 @@ def show_stats(true, pred, metric_range='mae'):
             print('Mean of means:', np.mean(df_precision['MAE'].to_numpy()))
         elif metric_range == 'mse':
             print('Mean of means:', np.mean(df_precision['MSE'].to_numpy()))
+        elif metric_range == 'rmse':
+            print('Mean of means:', np.mean(df_precision['RMSE'].to_numpy()))
         print(df_precision.to_string())
         df_precision_complete_list.append(df_precision)
 

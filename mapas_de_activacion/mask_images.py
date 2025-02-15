@@ -12,7 +12,7 @@ def main(input, output):
             img_mask = np.where(img > 0, 255.0, 0.0)
 
             filename, ext = os.path.splitext(file)
-            file_mask = filename + "_gray" + ext
+            file_mask = filename + "_mask" + ext
             file_mask = os.path.join(root, file_mask)
             file_mask = file_mask.replace(input, output)
             logging.debug(file_mask)
@@ -21,7 +21,7 @@ def main(input, output):
 
             if logging.getLogger().isEnabledFor(logging.DEBUG):
                 cv2.imshow(file, img)
-                cv2.imshow("file_gray", img_mask)
+                cv2.imshow("file_mask", img_mask)
 
         if logging.getLogger().isEnabledFor(logging.DEBUG):
             cv2.waitKey(0)

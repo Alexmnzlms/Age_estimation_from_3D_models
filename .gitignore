@@ -37,3 +37,4 @@ __pycache__
 *.png
 *.rar
 *modelos_entrenados*
+app_env/*

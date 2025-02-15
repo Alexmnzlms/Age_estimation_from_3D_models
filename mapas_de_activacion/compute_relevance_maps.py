@@ -138,7 +138,9 @@ def main(width, maps_path, data_path, obj_paths, threshold, as_png):
                 # cv.destroyAllWindows()
 
     relevance_maps_df = pd.DataFrame.from_dict(relevance_maps).T
-    relevance_maps_df.to_csv("relevance_maps.csv", sep=";", index=False)
+    print(relevance_maps_df)
+    print(os.path.join(maps_path,"relevance_maps.csv"))
+    relevance_maps_df.to_csv(os.path.join(maps_path,"relevance_maps.csv"), sep=";", index=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

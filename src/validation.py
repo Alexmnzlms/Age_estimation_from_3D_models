@@ -21,9 +21,8 @@ import functions as fn
 import argparse
 import json
 import logging
-import os
 
-def main(test_path, data_path, color_mode, img_shape, depth, cnn, verbose_level, pretrained_model, output, resnet):
+def main(test_path, data_path, color_mode, img_shape, depth, cnn, verbose_level, pretrained_model):
     mse = []
     r2 = []
     rmse = []
@@ -75,8 +74,7 @@ def main(test_path, data_path, color_mode, img_shape, depth, cnn, verbose_level,
     true = np.array([float(n) for n in test_not_augment[:,3]])
     pred = prediction_not_augment.flatten()
 
-    df_stats_mae, df_precision_mae = fn.show_stats(true,pred,metric_range='mae')
-    df_stats_rmse, df_precision_rmse = fn.show_stats(true,pred,metric_range='rmse')
+    fn.show_stats(true,pred,metric_range='mse')
 
     mse.append(mean_squared_error(true, pred))
     r2.append(r2_score(true, pred)*100)
@@ -92,23 +90,6 @@ def main(test_path, data_path, color_mode, img_shape, depth, cnn, verbose_level,
     print(kfold_stats_df.to_string())
 
     print(pred)
-
-    if resnet:
-        result_code = "RESNET50"
-    else:
-        result_code = "PANORAMA-CNN"
-
-    print(result_code)
-
-    os.makedirs(output, exist_ok=True)
-
-    kfold_stats_df.to_csv(os.path.join(output, "execution_results_{}.csv".format(result_code)), sep=";", index=False)
-    df_stats_mae.to_csv(os.path.join(output, "stats_mae.csv"), sep = ";", index=False)
-    df_stats_rmse.to_csv(os.path.join(output, "stats_rmse.csv"), sep = ";", index=False)
-    df_precision_mae.to_csv(os.path.join(output, "precision_mae.csv"), sep = ";", index=False)
-    df_precision_rmse.to_csv(os.path.join(output, "precision_rmse.csv"), sep = ";", index=False)
-
-    # print(df_stats_mae.to_string())
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -167,6 +148,4 @@ if __name__ == "__main__":
         depth, 
         cnn,
         args["verbose_keras"],
-        args["pretrained_model"],
-        args["output"],
-        args["resnet"])
+        args["pretrained_model"])

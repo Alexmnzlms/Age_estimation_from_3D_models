@@ -11,7 +11,8 @@ from tensorflow.keras.optimizers import SGD, Adam, RMSprop
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
 from tensorflow.keras.losses import MeanSquaredError, MeanAbsoluteError, CategoricalCrossentropy
 from tensorflow.keras.applications.resnet50 import ResNet50
-from tensorflow.keras.applications import VGG16
+from tensorflow.keras.applications.resnet import ResNet101
+from resnet18 import ResNet18
 
 from sklearn.model_selection import KFold
 
@@ -36,11 +37,34 @@ import ranges_of_age as roa
 
 import sys
 
-import math
-
 from datetime import datetime
 
-def create_CNN(n, width, height, depth, summary = False):
+def set_model_structure(label, cnn_list):
+    
+    if label == "x":
+        return [cnn_list[0]]
+    
+    elif label == "y":
+        return [cnn_list[1]]
+    
+    elif label == "z":
+        return [cnn_list[2]]
+    
+    elif label == "xy":
+        return [cnn_list[0], cnn_list[1]]
+    
+    elif label == "xz":
+        return [cnn_list[0], cnn_list[2]]
+    
+    elif label == "yz":
+        return [cnn_list[1], cnn_list[2]]
+    
+    elif label == "xyz":
+        return cnn_list
+
+
+
+def create_CNN(n, width, height, depth, summary = False, arch_label = None):
     input_shape = (height, width, depth)
 
     inputs = Input(shape=input_shape)
@@ -69,12 +93,28 @@ def create_CNN(n, width, height, depth, summary = False):
 
     return model
 
-def create_CNN_Resnet(n, width, height, depth, trainable = False, summary=False):
+def resnet_arch(input_tensor, input_shape, arch_label, include_top=False):
+    resnet = None
+    if arch_label == "resnet50":
+        resnet = ResNet50(include_top=False, input_tensor=input_tensor, input_shape=input_shape)
+    elif arch_label == "resnet101":
+        resnet = ResNet101(include_top=False, input_tensor=input_tensor, input_shape=input_shape)
+    elif arch_label == "resnet18":
+        resnet = ResNet18(include_top=False, input_tensor=input_tensor, input_shape=input_shape)
+
+    print("USING ARCH {}".format(arch_label))
+    assert resnet is not None
+
+    return resnet
+
+
+def create_CNN_Resnet(n, width, height, depth, trainable = False, summary=False, arch_label="resnet50"):
     input_shape = (height, width, depth)
 
     inputs = Input(shape=input_shape)
 
-    resnet = ResNet50(include_top=False, input_tensor=inputs, input_shape=input_shape)
+    # resnet = ResNet50(include_top=False, input_tensor=inputs, input_shape=input_shape)
+    resnet = resnet_arch(arch_label=arch_label, include_top=False, input_tensor=inputs, input_shape=input_shape)
     resnet.layers.pop(0)
     resnet.trainable = trainable
 
@@ -151,7 +191,7 @@ def read_images_gen(images, dir, img_shape, datagen, colormode, image_cache):
 
     return X
         
-def image_generator(images, dir, batch_size, datagen, img_shape=(108,108), colormode="rgb", shuffle=True, weights=True):
+def image_generator(images, dir, batch_size, datagen, img_shape=(108,108), structure_label="xyz", colormode="rgb", shuffle=True, weights=True):
     image_cache = {}
 
     while True:
@@ -165,15 +205,22 @@ def image_generator(images, dir, batch_size, datagen, img_shape=(108,108), color
         for bid in range(num_batches):
             batch_idx = indexs[bid*batch_size:(bid+1)*batch_size]
             batch = [images[i] for i in batch_idx]
-            img1 = read_images_gen([b[0] for b in batch], dir, img_shape, datagen, colormode, image_cache)
-            img2 = read_images_gen([b[1] for b in batch], dir, img_shape, datagen, colormode, image_cache)
-            img3 = read_images_gen([b[2] for b in batch], dir, img_shape, datagen, colormode, image_cache)
+            img_list = []
+            if "x" in structure_label:
+                img1 = read_images_gen([b[0] for b in batch], dir, img_shape, datagen, colormode, image_cache)
+                img_list.append(img1)
+            if "y" in structure_label:
+                img2 = read_images_gen([b[1] for b in batch], dir, img_shape, datagen, colormode, image_cache)
+                img_list.append(img2)
+            if "z" in structure_label:
+                img3 = read_images_gen([b[2] for b in batch], dir, img_shape, datagen, colormode, image_cache)
+                img_list.append(img3)
             label = np.array([b[3] for b in batch]).astype(np.float32)
             if weights:
                 label_weights = np.array([b[4] for b in batch]).astype(np.float32)
-                yield ([img1, img2, img3], label, label_weights)
+                yield (img_list, label, label_weights)
             else:
-                yield ([img1, img2, img3], label)
+                yield (img_list, label)
 
 def load_image_normalize_grayscale(images,dir,img_shape,outdir,fit_data = True,list_values = []):
     if fit_data:
@@ -384,9 +431,6 @@ def precision_by_range(y_true, y_pred, ranges, metric='mae'):
         elif metric == 'mse':
             dif = (yt - yp) * (yt - yp)
             metric_name = 'MSE'
-        elif metric == 'rmse':
-            dif = (yt - yp) * (yt - yp)
-            metric_name = 'RMSE'
         prec_dic[r_age][0].append(dif)
         prec_dic[r_age][1].append(yp)
         prec_dic[r_age][2].append(yt)
@@ -401,46 +445,43 @@ def precision_by_range(y_true, y_pred, ranges, metric='mae'):
     df_precision['Range'] = [ranges[k] for k in prec_dic_filter.keys()]
     df_precision['N values'] = [len(np.array(prec_dic_filter[k][1])) for k in prec_dic_filter.keys()]
     df_precision['T values Mean'] = [np.mean(np.array(prec_dic_filter[k][2])) for k in prec_dic_filter.keys()]
-    # df_precision['T values std'] = [np.std(np.array(prec_dic_filter[k][2])) for k in prec_dic_filter.keys()]
+    df_precision['T values std'] = [np.std(np.array(prec_dic_filter[k][2])) for k in prec_dic_filter.keys()]
     df_precision['Values Mean'] = [np.mean(np.array(prec_dic_filter[k][1])) for k in prec_dic_filter.keys()]
-    # df_precision['Values std'] = [np.std(np.array(prec_dic_filter[k][1])) for k in prec_dic_filter.keys()]
-    # df_precision['Values 1%'] = [np.percentile(np.array(prec_dic_filter[k][1]),1) for k in prec_dic_filter.keys()]
-    # df_precision['Values 10%'] = [np.percentile(np.array(prec_dic_filter[k][1]),10) for k in prec_dic_filter.keys()]
-    # df_precision['Values 25%'] = [np.percentile(np.array(prec_dic_filter[k][1]),25) for k in prec_dic_filter.keys()]
-    # df_precision['Values 50%'] = [np.percentile(np.array(prec_dic_filter[k][1]),50) for k in prec_dic_filter.keys()]
-    # df_precision['Values 75%'] = [np.percentile(np.array(prec_dic_filter[k][1]),75) for k in prec_dic_filter.keys()]
-    # df_precision['Values 99%'] = [np.percentile(np.array(prec_dic_filter[k][1]),99) for k in prec_dic_filter.keys()]
-    if metric_name == "RMSE":
-        df_precision[metric_name] = [np.sqrt(np.mean(np.array(prec_dic_filter[k][0]))) for k in prec_dic_filter.keys()]
-    else:
-        df_precision[metric_name] = [np.mean(np.array(prec_dic_filter[k][0])) for k in prec_dic_filter.keys()]
-    # df_precision[metric_name+' Std'] = [np.std(np.array(prec_dic_filter[k][0])) for k in prec_dic_filter.keys()]
-    # df_precision['Error 1%'] = [np.percentile(np.array(prec_dic_filter[k][0]),1) for k in prec_dic_filter.keys()]
-    # df_precision['Error 10%'] = [np.percentile(np.array(prec_dic_filter[k][0]),10) for k in prec_dic_filter.keys()]
-    # df_precision['Error 25%'] = [np.percentile(np.array(prec_dic_filter[k][0]),25) for k in prec_dic_filter.keys()]
-    # df_precision['Error 50%'] = [np.percentile(np.array(prec_dic_filter[k][0]),50) for k in prec_dic_filter.keys()]
-    # df_precision['Error 75%'] = [np.percentile(np.array(prec_dic_filter[k][0]),75) for k in prec_dic_filter.keys()]
-    # df_precision['Error 99%'] = [np.percentile(np.array(prec_dic_filter[k][0]),99) for k in prec_dic_filter.keys()]
+    df_precision['Values std'] = [np.std(np.array(prec_dic_filter[k][1])) for k in prec_dic_filter.keys()]
+    df_precision['Values 1%'] = [np.percentile(np.array(prec_dic_filter[k][1]),1) for k in prec_dic_filter.keys()]
+    df_precision['Values 10%'] = [np.percentile(np.array(prec_dic_filter[k][1]),10) for k in prec_dic_filter.keys()]
+    df_precision['Values 25%'] = [np.percentile(np.array(prec_dic_filter[k][1]),25) for k in prec_dic_filter.keys()]
+    df_precision['Values 50%'] = [np.percentile(np.array(prec_dic_filter[k][1]),50) for k in prec_dic_filter.keys()]
+    df_precision['Values 75%'] = [np.percentile(np.array(prec_dic_filter[k][1]),75) for k in prec_dic_filter.keys()]
+    df_precision['Values 99%'] = [np.percentile(np.array(prec_dic_filter[k][1]),99) for k in prec_dic_filter.keys()]
+    df_precision[metric_name] = [np.mean(np.array(prec_dic_filter[k][0])) for k in prec_dic_filter.keys()]
+    df_precision[metric_name+' Std'] = [np.std(np.array(prec_dic_filter[k][0])) for k in prec_dic_filter.keys()]
+    df_precision['Error 1%'] = [np.percentile(np.array(prec_dic_filter[k][0]),1) for k in prec_dic_filter.keys()]
+    df_precision['Error 10%'] = [np.percentile(np.array(prec_dic_filter[k][0]),10) for k in prec_dic_filter.keys()]
+    df_precision['Error 25%'] = [np.percentile(np.array(prec_dic_filter[k][0]),25) for k in prec_dic_filter.keys()]
+    df_precision['Error 50%'] = [np.percentile(np.array(prec_dic_filter[k][0]),50) for k in prec_dic_filter.keys()]
+    df_precision['Error 75%'] = [np.percentile(np.array(prec_dic_filter[k][0]),75) for k in prec_dic_filter.keys()]
+    df_precision['Error 99%'] = [np.percentile(np.array(prec_dic_filter[k][0]),99) for k in prec_dic_filter.keys()]
 
     return df_precision
 
-def show_stats(true, pred, metric_range='mae'):
+def show_stats(true,pred,metric_range='mae'):
     stats_mae = abs(true-pred)
     stats_mse = (true-pred)*(true-pred)
-    measures = [stats_mae, stats_mse, stats_mse]
+    measures = [stats_mae, stats_mse]
 
     df_stats = pd.DataFrame()
-    df_stats['Metric'] = ['MAE' ,'MSE', 'RMSE']
-    df_stats['Mean:'] = [np.mean(stats_mae), np.mean(stats_mse), np.sqrt(np.mean(stats_mse))]
-    # df_stats['Std:'] = [np.std(m) for m in measures]
-    # df_stats['1% value:'] = [np.percentile(m,1) for m in measures]
-    # df_stats['10% value:'] = [np.percentile(m,10) for m in measures]
-    # df_stats['25% value:'] = [np.percentile(m,25) for m in measures]
-    # df_stats['50% value:'] = [np.median(m) for m in measures]
-    # df_stats['75% value:'] = [np.percentile(m,75) for m in measures]
-    # df_stats['99% value:'] = [np.percentile(m,99) for m in measures]
-    # df_stats['Min value:'] = [np.min(m) for m in measures]
-    # df_stats['Max value:'] = [np.max(m) for m in measures]
+    df_stats['Metric'] = ['MAE' ,'MSE']
+    df_stats['Mean:'] = [np.mean(m) for m in measures]
+    df_stats['Std:'] = [np.std(m) for m in measures]
+    df_stats['1% value:'] = [np.percentile(m,1) for m in measures]
+    df_stats['10% value:'] = [np.percentile(m,10) for m in measures]
+    df_stats['25% value:'] = [np.percentile(m,25) for m in measures]
+    df_stats['50% value:'] = [np.median(m) for m in measures]
+    df_stats['75% value:'] = [np.percentile(m,75) for m in measures]
+    df_stats['99% value:'] = [np.percentile(m,99) for m in measures]
+    df_stats['Min value:'] = [np.min(m) for m in measures]
+    df_stats['Max value:'] = [np.max(m) for m in measures]
 
     ranges = [roa.ranges_todd,roa.ranges_5,roa.ranges_3]
     df_precision_complete_list = []
@@ -450,8 +491,6 @@ def show_stats(true, pred, metric_range='mae'):
             print('Mean of means:', np.mean(df_precision['MAE'].to_numpy()))
         elif metric_range == 'mse':
             print('Mean of means:', np.mean(df_precision['MSE'].to_numpy()))
-        elif metric_range == 'rmse':
-            print('Mean of means:', np.mean(df_precision['RMSE'].to_numpy()))
         print(df_precision.to_string())
         df_precision_complete_list.append(df_precision)
 

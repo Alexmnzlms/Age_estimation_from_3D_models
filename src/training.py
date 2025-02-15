@@ -4,6 +4,7 @@ from re import S
 from xml.etree.ElementInclude import include
 from sklearn import metrics
 import tensorflow as tf
+from tensorflow.python.profiler import profiler_v2 as profiler
 from tensorflow.keras import callbacks, Input
 from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, AveragePooling2D, ReLU, Flatten, Dense, GlobalAveragePooling2D, BatchNormalization, Dropout, Lambda, ZeroPadding2D, concatenate, Average
@@ -44,12 +45,14 @@ import logging
 
 import json
 
+import time
+
 
 ################################################################################
 
 def main(train_path, validation_path, test_path, data_path, checkpoint_filepath, 
          batch_size, color_mode, epochs, output, resnet, seed, img_shape, depth, 
-         cnn, verbose_level, pretrained_model):
+         cnn, verbose_level, pretrained_model, arch_label, arch_structure, exp_name):
 
     mse = []
     r2 = []
@@ -58,13 +61,16 @@ def main(train_path, validation_path, test_path, data_path, checkpoint_filepath,
     name = []
     fold = 1
     ################################################################################
-    cnn_0 = cnn(0,img_shape[0],img_shape[1],depth)
-    cnn_1 = cnn(1,img_shape[0],img_shape[1],depth)
-    cnn_2 = cnn(2,img_shape[0],img_shape[1],depth)
+    cnn_0 = cnn(0,img_shape[0],img_shape[1],depth, arch_label=arch_label)
+    cnn_1 = cnn(1,img_shape[0],img_shape[1],depth, arch_label=arch_label)
+    cnn_2 = cnn(2,img_shape[0],img_shape[1],depth, arch_label=arch_label)
 
-    x = Average()([cnn_0.output, cnn_1.output, cnn_2.output])
+    # x = Average()([cnn_0.output, cnn_1.output, cnn_2.output])
+    cnn_list = fn.set_model_structure(arch_structure, [cnn_0, cnn_1, cnn_2])
+    x = Average()([cnn.output for cnn in cnn_list])
 
-    model = Model(inputs=[cnn_0.input, cnn_1.input, cnn_2.input], outputs=x)
+    # model = Model(inputs=[cnn_0.input, cnn_1.input, cnn_2.input], outputs=x)
+    model = Model(inputs=[cnn.input for cnn in cnn_list], outputs=x)
 
     optimizer = Adam()
 
@@ -75,12 +81,15 @@ def main(train_path, validation_path, test_path, data_path, checkpoint_filepath,
 
     if resnet:
         print('FINE TUNNING')
-        cnn_0 = fn.create_CNN_Resnet(0,img_shape[0],img_shape[1],depth,True)
-        cnn_1 = fn.create_CNN_Resnet(1,img_shape[0],img_shape[1],depth,True)
-        cnn_2 = fn.create_CNN_Resnet(2,img_shape[0],img_shape[1],depth,True)
-        x = Average()([cnn_0.output, cnn_1.output, cnn_2.output])
+        cnn_0 = fn.create_CNN_Resnet(0,img_shape[0],img_shape[1],depth,True, arch_label=arch_label)
+        cnn_1 = fn.create_CNN_Resnet(1,img_shape[0],img_shape[1],depth,True, arch_label=arch_label)
+        cnn_2 = fn.create_CNN_Resnet(2,img_shape[0],img_shape[1],depth,True, arch_label=arch_label)
+        # x = Average()([cnn_0.output, cnn_1.output, cnn_2.output])
+        cnn_list = fn.set_model_structure(arch_structure, [cnn_0, cnn_1, cnn_2])
+        x = Average()([cnn.output for cnn in cnn_list])
 
-        model_ft = Model(inputs=[cnn_0.input, cnn_1.input, cnn_2.input], outputs=x)
+        # model_ft = Model(inputs=[cnn_0.input, cnn_1.input, cnn_2.input], outputs=x)
+        model_ft = Model(inputs=[cnn.input for cnn in cnn_list], outputs=x)
 
         optimizer_ft = Adam(1e-5)
 
@@ -112,18 +121,18 @@ def main(train_path, validation_path, test_path, data_path, checkpoint_filepath,
     test_not_augment = fn.get_images_list(test_df,color_mode,augment=False,weights=False)
     datagen = ImageDataGenerator()
     print("[INFO]: Starting image load process...")
-    datagen_train = fn.image_generator(train, data_path, batch_size, datagen, img_shape, colormode=color_mode)
+    datagen_train = fn.image_generator(train, data_path, batch_size, datagen, img_shape, structure_label=arch_structure, colormode=color_mode)
     print("[INFO]: Train data loaded...")
-    datagen_val = fn.image_generator(validation, data_path, batch_size, datagen, img_shape, colormode=color_mode, weights=False)
+    datagen_val = fn.image_generator(validation, data_path, batch_size, datagen, img_shape, structure_label=arch_structure, colormode=color_mode, weights=False)
     print("[INFO]: Validation data loaded...")
     # datagen_test = fn.image_generator(test, data_path, 1, datagen, img_shape, colormode=color_mode, shuffle=False, weights=False)
-    datagen_test_not_augment = fn.image_generator(test_not_augment, data_path, 1, datagen, img_shape, colormode=color_mode, shuffle=False, weights=False)
+    datagen_test_not_augment = fn.image_generator(test_not_augment, data_path, 1, datagen, img_shape, structure_label=arch_structure, colormode=color_mode, shuffle=False, weights=False)
     print("[INFO]: Test data loaded...")
 
     if pretrained_model is not None:
         model.load_weights(pretrained_model)
 
-    early_stop_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=int(epochs*0.2))
+    # early_stop_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=int(epochs*0.2))
     model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
         filepath=checkpoint_filepath,
         save_weights_only=True,
@@ -131,6 +140,12 @@ def main(train_path, validation_path, test_path, data_path, checkpoint_filepath,
         mode='min',
         save_best_only=True,
         verbose=verbose_level)
+    
+    logs = "logs/" + datetime.now().strftime("{}".format(exp_name))
+    tboard_callback = tf.keras.callbacks.TensorBoard(log_dir = logs,
+                                                    histogram_freq = 1,
+                                                    profile_batch = '500,520')
+    start = time.time()
 
     history = model.fit(
         datagen_train,
@@ -139,8 +154,12 @@ def main(train_path, validation_path, test_path, data_path, checkpoint_filepath,
         verbose=verbose_level,
         steps_per_epoch=(len(train) // batch_size),
         validation_steps=(len(validation) // batch_size),
-        callbacks=[early_stop_callback, model_checkpoint_callback]
+        # callbacks=[early_stop_callback, model_checkpoint_callback, tboard_callback]
+        callbacks=[model_checkpoint_callback, tboard_callback]
     )
+    end = time.time()
+
+    elapsed = end - start
 
     history_df = pd.DataFrame.from_dict(history.history)
 
@@ -180,38 +199,38 @@ def main(train_path, validation_path, test_path, data_path, checkpoint_filepath,
 
     print(kfold_stats_df.to_string())
 
-    if not resnet:
-        if color_mode == 'rgb':
-            output_subfolder = 'model_rgb_panoramacnn'
-            output_folder = os.path.join(output, output_subfolder)
-            os.makedirs(output_folder, exist_ok=True)
-            output_path = os.path.join(output, output_subfolder, 'model_rgb_panoramacnn')
-            model.save_weights(output_path)
+    # if not resnet:
+        # if color_mode == 'rgb':
+        #     output_subfolder = 'model_rgb_panoramacnn'
+        #     output_folder = os.path.join(output, output_subfolder)
+        #     os.makedirs(output_folder, exist_ok=True)
+        #     output_path = os.path.join(output, output_subfolder, 'model_rgb_panoramacnn')
+        #     model.save_weights(output_path)
 
-        elif color_mode == 'grayscale':
-            output_subfolder = 'model_gray_panoramacnn'
-            output_folder = os.path.join(output, output_subfolder)
-            os.makedirs(output_folder, exist_ok=True)
-            output_path = os.path.join(output, output_subfolder, 'model_gray_panoramacnn')
+        # elif color_mode == 'grayscale':
+        #     output_subfolder = 'model_gray_panoramacnn'
+        #     output_folder = os.path.join(output, output_subfolder)
+        #     os.makedirs(output_folder, exist_ok=True)
+        #     output_path = os.path.join(output, output_subfolder, 'model_gray_panoramacnn')
 
-        history_df.to_csv(os.path.join(output_folder, "history.csv"), sep = ";")
-        # df_stats_augment.to_csv(os.path.join(output_folder, "stats_augment.csv"), sep = ";")
-        # df_precision_augment.to_csv(os.path.join(output_folder, "precision_augment.csv"), sep = ";")
-        df_stats_not_augment.to_csv(os.path.join(output_folder, "stats_not_augment.csv"), sep = ";")
-        df_precision_not_augment.to_csv(os.path.join(output_folder, "precision_not_augment.csv"), sep = ";")
+        # history_df.to_csv(os.path.join(output_folder, "history.csv"), sep = ";")
+        # # df_stats_augment.to_csv(os.path.join(output_folder, "stats_augment.csv"), sep = ";")
+        # # df_precision_augment.to_csv(os.path.join(output_folder, "precision_augment.csv"), sep = ";")
+        # df_stats_not_augment.to_csv(os.path.join(output_folder, "stats_not_augment.csv"), sep = ";")
+        # df_precision_not_augment.to_csv(os.path.join(output_folder, "precision_not_augment.csv"), sep = ";")
+    # else:
+    output_subfolder = exp_name
+    output_folder = os.path.join(output, output_subfolder)
+    os.makedirs(output_folder, exist_ok=True)
+    output_path = os.path.join(output_folder, exp_name)
+    model.save_weights(output_path)
+    history_df.to_csv(os.path.join(output_folder, "history.csv"), sep = ";")
+    df_stats_not_augment.to_csv(os.path.join(output_folder, "stats_not_augment.csv"), sep = ";")
+    df_precision_not_augment.to_csv(os.path.join(output_folder, "precision_not_augment.csv"), sep = ";")
 
-    else:
-        output_subfolder = "model_rgb_resnet"
-        output_folder = os.path.join(output, output_subfolder)
-        os.makedirs(output_folder, exist_ok=True)
-        output_path = os.path.join(output_folder, 'model_rgb_resnet')
-        model.save_weights(output_path)
-        history_df.to_csv(os.path.join(output_folder, "history.csv"), sep = ";")
-        df_stats_not_augment.to_csv(os.path.join(output_folder, "stats_not_augment.csv"), sep = ";")
-        df_precision_not_augment.to_csv(os.path.join(output_folder, "precision_not_augment.csv"), sep = ";")
+    print('FINE TUNNING')
 
-        print('FINE TUNNING')
-
+    if resnet:
         model_ft.load_weights(checkpoint_filepath)
 
         early_stop_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=int(epochs*0.2))
@@ -222,7 +241,12 @@ def main(train_path, validation_path, test_path, data_path, checkpoint_filepath,
             mode='min',
             save_best_only=True,
             verbose=verbose_level)
-
+        
+        logs = "logs/" + datetime.now().strftime("{}_ft".format(exp_name))
+        tboard_callback = tf.keras.callbacks.TensorBoard(log_dir = logs,
+                                                        histogram_freq = 1,
+                                                        profile_batch = '500,520')
+        start = time.time()
         history = model_ft.fit(
             datagen_train,
             validation_data=datagen_val,
@@ -230,8 +254,11 @@ def main(train_path, validation_path, test_path, data_path, checkpoint_filepath,
             verbose=verbose_level,
             steps_per_epoch=(len(train) // batch_size),
             validation_steps=(len(validation) // batch_size),
-            callbacks=[early_stop_callback, model_checkpoint_callback]
+            # callbacks=[early_stop_callback, model_checkpoint_callback, tboard_callback]
+            callbacks=[model_checkpoint_callback, tboard_callback]
         )
+        end = time.time()
+        elapsed = elapsed + (end - start)
 
         history_df_ft = pd.DataFrame.from_dict(history.history)
 
@@ -259,6 +286,8 @@ def main(train_path, validation_path, test_path, data_path, checkpoint_filepath,
         mse.append(mean_squared_error(true, pred))
         r2.append(r2_score(true, pred))
         rmse.append(mean_squared_error(true, pred, squared= False))
+
+
         mae.append(mean_absolute_error(true, pred))
 
         kfold_stats_df = pd.DataFrame()
@@ -269,10 +298,10 @@ def main(train_path, validation_path, test_path, data_path, checkpoint_filepath,
         kfold_stats_df['R2'] = r2
 
         print(kfold_stats_df.to_string())
-        output_subfolder = "model_rgb_resnet_ft"
+        output_subfolder = exp_name + "_ft"
         output_folder = os.path.join(output, output_subfolder)
         os.makedirs(output_folder, exist_ok=True)
-        output_path = os.path.join(output_folder, 'model_rgb_resnet_ft')
+        output_path = os.path.join(output_folder, exp_name + '_ft')
         model_ft.save_weights(output_path)
 
         history_df_ft.to_csv(os.path.join(output_folder, "history_ft.csv"), sep = ";")
@@ -307,6 +336,8 @@ def main(train_path, validation_path, test_path, data_path, checkpoint_filepath,
     print(kfold_stats_df.to_string())
     kfold_stats_df.to_csv(os.path.join(output, "execution_results_{}.csv".format(result_code)), sep=";")
 
+    print("ELAPSED TIME:", elapsed)
+    
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
@@ -357,6 +388,8 @@ if __name__ == "__main__":
 
     logging.warning("Verbose level set to {}".format(logging.root.level))
 
+    print(args)
+
     main(
         args["train"],
         args["val"],
@@ -373,4 +406,7 @@ if __name__ == "__main__":
         depth, 
         cnn,
         args["verbose_keras"],
-        args["pretrained_model"])
+        args["pretrained_model"],
+        args["arch_label"],
+        args["arch_structure"],
+        args["exp_name"])
